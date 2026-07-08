@@ -170,6 +170,18 @@ function ContratosPage() {
           }}>Varredura Nº contrato</Button>
         )}
         {canEdit && (
+          <Button variant="outline" onClick={async () => {
+            const { data, error } = await (supabase as any).rpc("auto_generate_contract_numbers");
+            if (error) return toast.error(error.message);
+            const row = Array.isArray(data) ? data[0] : data;
+            const n = row?.contracts_numbered ?? 0;
+            const s = row?.customers_synced ?? 0;
+            toast.success(`${n} contrato(s) numerado(s); ${s} cliente(s) sincronizado(s).`);
+            qc.invalidateQueries({ queryKey: ["contracts"] });
+            qc.invalidateQueries({ queryKey: ["customers-light"] });
+          }}>Gerar Nº automáticos</Button>
+        )}
+        {canEdit && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" />Novo contrato</Button></DialogTrigger>
             <DialogContent>
