@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { brl, fmtDate, installmentStatus } from "@/lib/format";
-import { ArrowLeft, CheckCircle2, MessageCircle, Mail, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, MessageCircle, Mail, Trash2, ArrowRightLeft, Scale } from "lucide-react";
 import { toast } from "sonner";
 import { sendInstallmentReminder } from "@/lib/email/send-reminder";
 
@@ -30,6 +31,42 @@ function ContractDetail() {
   const [payTarget, setPayTarget] = useState<any | null>(null);
   const [payDate, setPayDate] = useState<string>("");
   const [payAmount, setPayAmount] = useState<string>("");
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferTarget, setTransferTarget] = useState<string>("");
+  const [legalOpen, setLegalOpen] = useState(false);
+  const [legalForm, setLegalForm] = useState({ stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", notes: "" });
+
+  const { data: allContracts } = useQuery({
+    queryKey: ["contracts-light"],
+    queryFn: async () => (await supabase.from("contracts").select("id,description,customer_id,customers(name)").order("created_at",{ascending:false})).data ?? [],
+  });
+
+  async function doTransfer() {
+    if (!transferTarget) return toast.error("Selecione o contrato destino");
+    if (transferTarget === id) return toast.error("Destino não pode ser o mesmo contrato");
+    if (!confirm("Todas as parcelas serão movidas para o contrato destino e este contrato será excluído. Confirmar?")) return;
+    const { data: moved, error } = await (supabase as any).rpc("transfer_contract", { _source_contract_id: id, _target_contract_id: transferTarget });
+    if (error) return toast.error(error.message);
+    toast.success(`${moved} parcelas transferidas.`);
+    window.location.href = `/contratos/${transferTarget}`;
+  }
+
+  async function sendToLegal() {
+    const honor = legalForm.honorary_amount ? Number(legalForm.honorary_amount.replace(",", ".")) : null;
+    const { error: e1 } = await (supabase as any).from("legal_cases").insert({
+      contract_id: id,
+      stage: legalForm.stage,
+      attorney_name: legalForm.attorney_name || null,
+      honorary_amount: honor,
+      notes: legalForm.notes || null,
+    });
+    if (e1) return toast.error(e1.message);
+    const { error: e2 } = await (supabase as any).from("contracts").update({ legal_status: "juridico" }).eq("id", id);
+    if (e2) return toast.error(e2.message);
+    toast.success("Contrato enviado ao Departamento Jurídico");
+    setLegalOpen(false);
+    qc.invalidateQueries({ queryKey: ["contract", id] });
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ["contract", id],
@@ -155,13 +192,29 @@ function ContractDetail() {
           <p className="text-muted-foreground mt-1">
             Cliente: <strong className="text-foreground">{data.customers.name}</strong>
             {data.customers.document && <> · {data.customers.document}</>}
+            {data.contract_number && <> · Nº <strong className="text-foreground">{data.contract_number}</strong></>}
+            {data.legal_status === "juridico" && (
+              <Badge variant="destructive" className="ml-2">Jurídico</Badge>
+            )}
           </p>
         </div>
-        {canDelete && (
-          <Button variant="destructive" size="sm" onClick={removeContract}>
-            <Trash2 className="w-4 h-4 mr-2" />Excluir
-          </Button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {(isAdmin || hasRole("financeiro")) && (
+            <Button size="sm" variant="outline" onClick={() => setTransferOpen(true)}>
+              <ArrowRightLeft className="w-4 h-4 mr-2" />Transferir
+            </Button>
+          )}
+          {(isAdmin || hasRole("financeiro") || hasRole("cobranca")) && data.legal_status !== "juridico" && (
+            <Button size="sm" variant="outline" onClick={() => setLegalOpen(true)}>
+              <Scale className="w-4 h-4 mr-2" />Enviar ao Jurídico
+            </Button>
+          )}
+          {canDelete && (
+            <Button variant="destructive" size="sm" onClick={removeContract}>
+              <Trash2 className="w-4 h-4 mr-2" />Excluir
+            </Button>
+          )}
+        </div>
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -276,6 +329,60 @@ function ContractDetail() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setPayTarget(null)}>Cancelar</Button>
             <Button onClick={confirmPay}>Confirmar baixa</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Transferir contrato</DialogTitle>
+            <DialogDescription>Todas as parcelas serão movidas para o contrato destino e este contrato será excluído.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Contrato destino</Label>
+            <Select value={transferTarget} onValueChange={setTransferTarget}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                {(allContracts ?? []).filter((c: any) => c.id !== id).map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>{c.customers?.name} — {c.description}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setTransferOpen(false)}>Cancelar</Button>
+            <Button onClick={doTransfer}>Transferir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={legalOpen} onOpenChange={setLegalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar ao Departamento Jurídico</DialogTitle>
+            <DialogDescription>Abre um caso jurídico vinculado a este contrato.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Etapa inicial</Label>
+              <Select value={legalForm.stage} onValueChange={(v) => setLegalForm({ ...legalForm, stage: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="notificacao_extrajudicial">Notificação extrajudicial</SelectItem>
+                  <SelectItem value="protesto">Protesto</SelectItem>
+                  <SelectItem value="acao_judicial">Ação judicial</SelectItem>
+                  <SelectItem value="acordo">Acordo em negociação</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div><Label>Advogado responsável</Label><Input value={legalForm.attorney_name} onChange={(e) => setLegalForm({ ...legalForm, attorney_name: e.target.value })} /></div>
+            <div><Label>Honorários (R$)</Label><Input type="number" step="0.01" value={legalForm.honorary_amount} onChange={(e) => setLegalForm({ ...legalForm, honorary_amount: e.target.value })} /></div>
+            <div><Label>Observações</Label><Input value={legalForm.notes} onChange={(e) => setLegalForm({ ...legalForm, notes: e.target.value })} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setLegalOpen(false)}>Cancelar</Button>
+            <Button onClick={sendToLegal}>Enviar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

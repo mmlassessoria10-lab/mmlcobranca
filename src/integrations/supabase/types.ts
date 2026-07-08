@@ -83,6 +83,7 @@ export type Database = {
       }
       contracts: {
         Row: {
+          contract_number: string | null
           created_at: string
           created_by: string | null
           customer_id: string
@@ -90,12 +91,14 @@ export type Database = {
           first_due_date: string
           id: string
           installments_count: number
+          legal_status: string
           status: string
           total_amount: number
           updated_at: string
           vendor_id: string | null
         }
         Insert: {
+          contract_number?: string | null
           created_at?: string
           created_by?: string | null
           customer_id: string
@@ -103,12 +106,14 @@ export type Database = {
           first_due_date: string
           id?: string
           installments_count: number
+          legal_status?: string
           status?: string
           total_amount: number
           updated_at?: string
           vendor_id?: string | null
         }
         Update: {
+          contract_number?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string
@@ -116,6 +121,7 @@ export type Database = {
           first_due_date?: string
           id?: string
           installments_count?: number
+          legal_status?: string
           status?: string
           total_amount?: number
           updated_at?: string
@@ -140,6 +146,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          contract_number: string | null
           created_at: string
           created_by: string | null
           document: string | null
@@ -152,6 +159,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          contract_number?: string | null
           created_at?: string
           created_by?: string | null
           document?: string | null
@@ -164,6 +172,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          contract_number?: string | null
           created_at?: string
           created_by?: string | null
           document?: string | null
@@ -263,6 +272,100 @@ export type Database = {
         }
         Relationships: []
       }
+      legal_case_events: {
+        Row: {
+          amount: number | null
+          case_id: string
+          created_at: string
+          created_by: string | null
+          description: string
+          event_date: string
+          event_type: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          case_id: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          event_date?: string
+          event_type?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          case_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          event_date?: string
+          event_type?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_case_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "legal_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_cases: {
+        Row: {
+          attorney_name: string | null
+          closed_at: string | null
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          honorary_amount: number | null
+          id: string
+          notes: string | null
+          opened_at: string
+          stage: string
+          updated_at: string
+        }
+        Insert: {
+          attorney_name?: string | null
+          closed_at?: string | null
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          honorary_amount?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          stage?: string
+          updated_at?: string
+        }
+        Update: {
+          attorney_name?: string | null
+          closed_at?: string | null
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          honorary_amount?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          stage?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_cases_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -343,6 +446,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      backfill_contract_numbers: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -353,6 +457,10 @@ export type Database = {
       redeem_invite: {
         Args: { _token: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      transfer_contract: {
+        Args: { _source_contract_id: string; _target_contract_id: string }
+        Returns: number
       }
     }
     Enums: {
