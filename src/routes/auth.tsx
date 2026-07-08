@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Wallet } from "lucide-react";
-import photogenicLogo from "@/assets/photogenic-logo.jpg.asset.json";
+import photogenicLogo from "@/assets/photogenic-logo-transparent.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Entrar | Photogenic" }] }),
@@ -69,13 +69,12 @@ function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
       <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-2 mb-6">
+        <div className="flex items-center justify-center mb-6">
           <img
             src={photogenicLogo.url}
-            alt="Photogenic"
-            className="w-12 h-12 rounded-lg object-contain bg-white"
+            alt="Photogenic Image"
+            className="w-40 h-40 object-contain"
           />
-          <h1 className="text-2xl font-bold">Photogenic</h1>
         </div>
         <Card>
           <CardHeader>
