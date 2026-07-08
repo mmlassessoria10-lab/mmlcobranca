@@ -15,7 +15,7 @@ import {
   Percent,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import photogenicLogo from "@/assets/photogenic-logo.jpg.asset.json";
+import photogenicLogo from "@/assets/photogenic-logo-2.jpeg.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
