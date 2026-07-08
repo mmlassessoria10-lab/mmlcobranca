@@ -68,7 +68,7 @@ function Dashboard() {
         <img
           src={photogenicLogo.url}
           alt="Photogenic Image"
-          className="w-16 h-16 rounded-lg object-contain bg-white shrink-0"
+          className="w-48 h-48 rounded-lg object-contain bg-white shrink-0"
         />
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
