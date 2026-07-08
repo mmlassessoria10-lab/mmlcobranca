@@ -8,7 +8,7 @@ import { AlertTriangle, CheckCircle2, Clock, DollarSign, FileText } from "lucide
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/")({
-  head: () => ({ meta: [{ title: "Dashboard | ParcelaPro" }] }),
+  head: () => ({ meta: [{ title: "Dashboard | Photogenic" }] }),
   component: Dashboard,
 });
 

@@ -15,7 +15,7 @@ import { Plus, Mail, Phone, Trash2, Pencil, Send } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
-  head: () => ({ meta: [{ title: "Clientes | ParcelaPro" }] }),
+  head: () => ({ meta: [{ title: "Clientes | Photogenic" }] }),
   component: ClientesPage,
 });
 
@@ -92,7 +92,7 @@ function ClientesPage() {
   function accessMessage(c: any) {
     return (
       `Olá, ${c?.name ?? ""}!\n\n` +
-      `Você já pode acompanhar seus parcelamentos no ParcelaPro.\n\n` +
+      `Você já pode acompanhar seus parcelamentos no Photogenic.\n\n` +
       `1) Acesse: ${authUrl}\n` +
       `2) Clique em "Criar conta" usando este e-mail: ${c?.email ?? ""}\n` +
       `3) Defina uma senha e pronto — você verá suas parcelas em "Minhas Parcelas".`
@@ -230,7 +230,7 @@ function ClientesPage() {
                   <Button
                     variant="secondary"
                     onClick={() => {
-                      const subject = "Seu acesso ao ParcelaPro";
+                      const subject = "Seu acesso ao Photogenic";
                       window.location.href = `mailto:${accessFor.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(accessMessage(accessFor))}`;
                     }}
                   >

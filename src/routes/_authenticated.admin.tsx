@@ -17,7 +17,7 @@ import { toast } from "sonner";
 const ROLES: AppRole[] = ["admin", "financeiro", "cobranca"];
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Administração | ParcelaPro" }] }),
+  head: () => ({ meta: [{ title: "Administração | Photogenic" }] }),
   component: AdminPage,
 });
 
@@ -65,7 +65,7 @@ function AdminPage() {
     const p = phone.replace(/\D/g, "");
     const num = p.length === 11 ? "55" + p : p;
     const msg =
-      `Olá! Você foi convidado para acessar o ParcelaPro como ${ROLE_LABELS[role]}. ` +
+      `Olá! Você foi convidado para acessar o Photogenic como ${ROLE_LABELS[role]}. ` +
       `Acesse o link para criar sua conta: ${inviteUrl(token)}`;
     return `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
   }
