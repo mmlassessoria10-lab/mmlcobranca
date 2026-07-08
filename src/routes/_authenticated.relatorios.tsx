@@ -18,7 +18,7 @@ import { brl, fmtDate, installmentStatus } from "@/lib/format";
 import { Download, Send, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
-  head: () => ({ meta: [{ title: "Relatórios | ParcelaPro" }] }),
+  head: () => ({ meta: [{ title: "Relatórios | Photogenic" }] }),
   component: RelatoriosPage,
 });
 

@@ -7,7 +7,7 @@ import { brl, fmtDate, installmentStatus } from "@/lib/format";
 import { Wallet, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/minhas-parcelas")({
-  head: () => ({ meta: [{ title: "Minhas Parcelas | ParcelaPro" }] }),
+  head: () => ({ meta: [{ title: "Minhas Parcelas | Photogenic" }] }),
   component: MinhasParcelas,
 });
 

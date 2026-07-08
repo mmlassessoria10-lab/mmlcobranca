@@ -66,7 +66,7 @@ function AuthedLayout() {
               <Wallet className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-bold text-base text-sidebar-foreground">ParcelaPro</h1>
+              <h1 className="font-bold text-base text-sidebar-foreground">Photogenic</h1>
               <p className="text-xs text-muted-foreground">Controle de parcelamento</p>
             </div>
           </div>

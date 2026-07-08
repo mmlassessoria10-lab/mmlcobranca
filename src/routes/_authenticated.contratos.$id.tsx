@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { sendInstallmentReminder } from "@/lib/email/send-reminder";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
-  head: () => ({ meta: [{ title: "Contrato | ParcelaPro" }] }),
+  head: () => ({ meta: [{ title: "Contrato | Photogenic" }] }),
   component: ContractDetail,
 });
 
