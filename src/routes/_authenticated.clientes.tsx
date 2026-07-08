@@ -26,13 +26,13 @@ function ClientesPage() {
   const canDelete = isAdmin;
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [form, setForm] = useState({ name: "", document: "", email: "", phone: "", notes: "" });
+  const [form, setForm] = useState({ name: "", document: "", email: "", phone: "", contract_number: "", notes: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [accessFor, setAccessFor] = useState<any | null>(null);
 
   function openNew() {
     setEditingId(null);
-    setForm({ name: "", document: "", email: "", phone: "", notes: "" });
+    setForm({ name: "", document: "", email: "", phone: "", contract_number: "", notes: "" });
     setOpen(true);
   }
   function openEdit(c: any) {
@@ -42,6 +42,7 @@ function ClientesPage() {
       document: c.document ?? "",
       email: c.email ?? "",
       phone: c.phone ?? "",
+      contract_number: c.contract_number ?? "",
       notes: c.notes ?? "",
     });
     setOpen(true);
@@ -63,8 +64,9 @@ function ClientesPage() {
       document: form.document || null,
       email: form.email || null,
       phone: form.phone || null,
+      contract_number: form.contract_number?.trim() || null,
       notes: form.notes || null,
-    };
+    } as any;
     const { error } = editingId
       ? await supabase.from("customers").update(payload).eq("id", editingId)
       : await supabase.from("customers").insert(payload);
@@ -72,7 +74,7 @@ function ClientesPage() {
     toast.success(editingId ? "Cliente atualizado" : "Cliente cadastrado");
     setOpen(false);
     setEditingId(null);
-    setForm({ name: "", document: "", email: "", phone: "", notes: "" });
+    setForm({ name: "", document: "", email: "", phone: "", contract_number: "", notes: "" });
     qc.invalidateQueries({ queryKey: ["customers"] });
   }
 
@@ -85,7 +87,7 @@ function ClientesPage() {
   }
 
   const filtered = (data ?? []).filter((c) =>
-    [c.name, c.document, c.email, c.phone].some((v) => v?.toLowerCase().includes(q.toLowerCase()))
+    [c.name, c.document, c.email, c.phone, (c as any).contract_number].some((v) => v?.toLowerCase().includes(q.toLowerCase()))
   );
 
   const authUrl = typeof window !== "undefined" ? `${window.location.origin}/auth` : "/auth";
@@ -122,6 +124,7 @@ function ClientesPage() {
                   <div><Label>Telefone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="11999999999" /></div>
                 </div>
                 <div><Label>E-mail</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+                <div><Label>Nº do contrato (auxiliar)</Label><Input value={form.contract_number} onChange={(e) => setForm({ ...form, contract_number: e.target.value })} placeholder="Ex: 2024-0123" /></div>
                 <div><Label>Observações</Label><Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
               </div>
               <DialogFooter><Button onClick={save}>{editingId ? "Atualizar" : "Salvar"}</Button></DialogFooter>
@@ -143,6 +146,7 @@ function ClientesPage() {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Documento</TableHead>
+                  <TableHead>Nº contrato</TableHead>
                   <TableHead>Contato</TableHead>
                   {canEdit && <TableHead className="w-20"></TableHead>}
                 </TableRow>
@@ -152,6 +156,7 @@ function ClientesPage() {
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.name}</TableCell>
                     <TableCell className="text-muted-foreground">{c.document || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{(c as any).contract_number || "—"}</TableCell>
                     <TableCell>
                       <div className="flex flex-col text-xs text-muted-foreground">
                         {c.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{c.email}</span>}
