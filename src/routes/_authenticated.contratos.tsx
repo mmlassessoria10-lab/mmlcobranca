@@ -33,15 +33,21 @@ function ContratosPage() {
     total_amount: "",
     installments_count: "12",
     first_due_date: new Date(Date.now() + 86400000 * 30).toISOString().slice(0, 10),
+    vendor_id: "none",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ description: "", first_due_date: "" });
+  const [editForm, setEditForm] = useState({ description: "", first_due_date: "", vendor_id: "none" });
   const [editOrigDue, setEditOrigDue] = useState("");
 
   const { data: customers } = useQuery({
     queryKey: ["customers-light"],
     queryFn: async () => (await supabase.from("customers").select("id,name").order("name")).data ?? [],
+  });
+
+  const { data: vendors } = useQuery({
+    queryKey: ["vendors-light"],
+    queryFn: async () => ((await (supabase as any).from("vendors").select("id,name,commission_rate").eq("active", true).order("name")).data ?? []) as { id: string; name: string; commission_rate: number }[],
   });
 
   const { data: contracts, isLoading } = useQuery({
@@ -69,6 +75,7 @@ function ContratosPage() {
       total_amount: total,
       installments_count: count,
       first_due_date: form.first_due_date,
+      ...(form.vendor_id && form.vendor_id !== "none" ? { vendor_id: form.vendor_id } : {}),
     }).select().single();
     if (error || !contract) return toast.error(error?.message ?? "Erro ao criar contrato");
 
@@ -87,7 +94,7 @@ function ContratosPage() {
   function openEdit(c: any, ev: React.MouseEvent) {
     ev.stopPropagation();
     setEditingId(c.id);
-    setEditForm({ description: c.description ?? "", first_due_date: c.first_due_date });
+    setEditForm({ description: c.description ?? "", first_due_date: c.first_due_date, vendor_id: c.vendor_id ?? "none" });
     setEditOrigDue(c.first_due_date);
     setEditOpen(true);
   }
@@ -98,6 +105,7 @@ function ContratosPage() {
     const { error } = await supabase.from("contracts").update({
       description: editForm.description.trim(),
       first_due_date: editForm.first_due_date,
+      vendor_id: editForm.vendor_id === "none" ? null : editForm.vendor_id,
     }).eq("id", editingId);
     if (error) return toast.error(error.message);
 
@@ -174,6 +182,18 @@ function ContratosPage() {
                   <div><Label>Nº parcelas *</Label><Input type="number" min="1" value={form.installments_count} onChange={(e) => setForm({ ...form, installments_count: e.target.value })} /></div>
                 </div>
                 <div><Label>1ª data de vencimento *</Label><Input type="date" value={form.first_due_date} onChange={(e) => setForm({ ...form, first_due_date: e.target.value })} /></div>
+                <div>
+                  <Label>Vendedor (comissão)</Label>
+                  <Select value={form.vendor_id} onValueChange={(v) => setForm({ ...form, vendor_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Sem vendedor" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem vendedor</SelectItem>
+                      {vendors?.map((v) => (
+                        <SelectItem key={v.id} value={v.id}>{v.name} — {Number(v.commission_rate).toFixed(2)}%</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <DialogFooter><Button onClick={save}>Criar contrato</Button></DialogFooter>
             </DialogContent>
@@ -249,6 +269,18 @@ function ContratosPage() {
             <div>
               <Label>1ª data de vencimento</Label>
               <Input type="date" value={editForm.first_due_date} onChange={(e) => setEditForm({ ...editForm, first_due_date: e.target.value })} />
+            </div>
+            <div>
+              <Label>Vendedor (comissão)</Label>
+              <Select value={editForm.vendor_id} onValueChange={(v) => setEditForm({ ...editForm, vendor_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Sem vendedor" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem vendedor</SelectItem>
+                  {vendors?.map((v) => (
+                    <SelectItem key={v.id} value={v.id}>{v.name} — {Number(v.commission_rate).toFixed(2)}%</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter><Button onClick={saveEdit}>Atualizar</Button></DialogFooter>

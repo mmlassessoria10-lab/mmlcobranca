@@ -14,6 +14,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      commissions: {
+        Row: {
+          amount: number
+          contract_id: string
+          created_at: string
+          id: string
+          installment_amount: number
+          installment_id: string
+          notes: string | null
+          paid_at: string | null
+          rate: number
+          status: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          amount: number
+          contract_id: string
+          created_at?: string
+          id?: string
+          installment_amount: number
+          installment_id: string
+          notes?: string | null
+          paid_at?: string | null
+          rate: number
+          status?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          amount?: number
+          contract_id?: string
+          created_at?: string
+          id?: string
+          installment_amount?: number
+          installment_id?: string
+          notes?: string | null
+          paid_at?: string | null
+          rate?: number
+          status?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_installment_id_fkey"
+            columns: ["installment_id"]
+            isOneToOne: true
+            referencedRelation: "installments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           created_at: string
@@ -26,6 +93,7 @@ export type Database = {
           status: string
           total_amount: number
           updated_at: string
+          vendor_id: string | null
         }
         Insert: {
           created_at?: string
@@ -38,6 +106,7 @@ export type Database = {
           status?: string
           total_amount: number
           updated_at?: string
+          vendor_id?: string | null
         }
         Update: {
           created_at?: string
@@ -50,6 +119,7 @@ export type Database = {
           status?: string
           total_amount?: number
           updated_at?: string
+          vendor_id?: string | null
         }
         Relationships: [
           {
@@ -57,6 +127,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -225,6 +302,39 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vendors: {
+        Row: {
+          active: boolean
+          commission_rate: number
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

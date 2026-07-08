@@ -17,6 +17,7 @@ import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMinhasParcelasRouteImport } from './routes/_authenticated.minhas-parcelas'
 import { Route as AuthenticatedImportarRouteImport } from './routes/_authenticated.importar'
 import { Route as AuthenticatedContratosRouteImport } from './routes/_authenticated.contratos'
+import { Route as AuthenticatedComissoesRouteImport } from './routes/_authenticated.comissoes'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated.clientes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated.contratos.$id'
@@ -62,6 +63,11 @@ const AuthenticatedContratosRoute = AuthenticatedContratosRouteImport.update({
   path: '/contratos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedComissoesRoute = AuthenticatedComissoesRouteImport.update({
+  id: '/comissoes',
+  path: '/comissoes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/trust': typeof TrustRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/comissoes': typeof AuthenticatedComissoesRoute
   '/contratos': typeof AuthenticatedContratosRouteWithChildren
   '/importar': typeof AuthenticatedImportarRoute
   '/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/trust': typeof TrustRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/comissoes': typeof AuthenticatedComissoesRoute
   '/contratos': typeof AuthenticatedContratosRouteWithChildren
   '/importar': typeof AuthenticatedImportarRoute
   '/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/trust': typeof TrustRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/comissoes': typeof AuthenticatedComissoesRoute
   '/_authenticated/contratos': typeof AuthenticatedContratosRouteWithChildren
   '/_authenticated/importar': typeof AuthenticatedImportarRoute
   '/_authenticated/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/trust'
     | '/admin'
     | '/clientes'
+    | '/comissoes'
     | '/contratos'
     | '/importar'
     | '/minhas-parcelas'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/trust'
     | '/admin'
     | '/clientes'
+    | '/comissoes'
     | '/contratos'
     | '/importar'
     | '/minhas-parcelas'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/trust'
     | '/_authenticated/admin'
     | '/_authenticated/clientes'
+    | '/_authenticated/comissoes'
     | '/_authenticated/contratos'
     | '/_authenticated/importar'
     | '/_authenticated/minhas-parcelas'
@@ -233,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/comissoes': {
+      id: '/_authenticated/comissoes'
+      path: '/comissoes'
+      fullPath: '/comissoes'
+      preLoaderRoute: typeof AuthenticatedComissoesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/clientes': {
       id: '/_authenticated/clientes'
       path: '/clientes'
@@ -281,6 +300,7 @@ const AuthenticatedContratosRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedComissoesRoute: typeof AuthenticatedComissoesRoute
   AuthenticatedContratosRoute: typeof AuthenticatedContratosRouteWithChildren
   AuthenticatedImportarRoute: typeof AuthenticatedImportarRoute
   AuthenticatedMinhasParcelasRoute: typeof AuthenticatedMinhasParcelasRoute
@@ -291,6 +311,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedComissoesRoute: AuthenticatedComissoesRoute,
   AuthenticatedContratosRoute: AuthenticatedContratosRouteWithChildren,
   AuthenticatedImportarRoute: AuthenticatedImportarRoute,
   AuthenticatedMinhasParcelasRoute: AuthenticatedMinhasParcelasRoute,

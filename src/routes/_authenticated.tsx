@@ -12,6 +12,7 @@ import {
   LogOut,
   Wallet,
   Receipt,
+  Percent,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ const nav: { to: string; label: string; icon: any; adminOnly?: boolean; hideForR
   { to: "/clientes", label: "Clientes", icon: Users, hideForCliente: true },
   { to: "/contratos", label: "Contratos", icon: FileText, hideForCliente: true },
   { to: "/importar", label: "Importar Excel", icon: Upload, hideForRoles: ["cobranca"], hideForCliente: true },
+  { to: "/comissoes", label: "Comissões", icon: Percent, hideForCliente: true },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3, hideForCliente: true },
   { to: "/admin", label: "Administração", icon: Shield, adminOnly: true },
 ];
