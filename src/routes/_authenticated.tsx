@@ -15,6 +15,7 @@ import {
   Percent,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import photogenicLogo from "@/assets/photogenic-logo.jpg.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
@@ -62,9 +63,11 @@ function AuthedLayout() {
       <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
         <div className="p-5 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img
+              src={photogenicLogo.url}
+              alt="Photogenic"
+              className="w-10 h-10 rounded-lg object-contain bg-white"
+            />
             <div>
               <h1 className="font-bold text-base text-sidebar-foreground">Photogenic</h1>
               <p className="text-xs text-muted-foreground">Controle de parcelamento</p>
