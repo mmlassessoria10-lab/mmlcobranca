@@ -160,6 +160,15 @@ function ContratosPage() {
           <h1 className="text-3xl font-bold">Contratos</h1>
           <p className="text-muted-foreground mt-1">{contracts?.length ?? 0} contratos</p>
         </div>
+        <div className="flex gap-2">
+        {canEdit && (
+          <Button variant="outline" onClick={async () => {
+            const { data, error } = await (supabase as any).rpc("backfill_contract_numbers");
+            if (error) return toast.error(error.message);
+            toast.success(`Varredura concluída: ${data ?? 0} contrato(s) atualizado(s).`);
+            qc.invalidateQueries({ queryKey: ["contracts"] });
+          }}>Varredura Nº contrato</Button>
+        )}
         {canEdit && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" />Novo contrato</Button></DialogTrigger>
@@ -205,6 +214,7 @@ function ContratosPage() {
             </DialogContent>
           </Dialog>
         )}
+        </div>
       </header>
 
       <Card><CardContent className="pt-6">
