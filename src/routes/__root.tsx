@@ -96,15 +96,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Lovable App" },
       { name: "twitter:description", content: "Intelligent Installment Management: Track payments, send reminders, and import data with AI." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/21ed1b54-00ff-4f9b-a6ff-7258bf66b6bd/id-preview-519159be--c7937062-f997-4015-9cc5-6ce9637a0889.lovable.app-1781821193961.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/21ed1b54-00ff-4f9b-a6ff-7258bf66b6bd/id-preview-519159be--c7937062-f997-4015-9cc5-6ce9637a0889.lovable.app-1781821193961.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/TV6mjtFkbqfn0jdnjdCE2t5UrFS2/social-images/social-1783527087024-WhatsApp_Image_2026-07-08_at_11.13.04.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/TV6mjtFkbqfn0jdnjdCE2t5UrFS2/social-images/social-1783527087024-WhatsApp_Image_2026-07-08_at_11.13.04.webp" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", type: "image/jpeg", href: photogenicLogo.url },
     ],
   }),
   shellComponent: RootShell,
