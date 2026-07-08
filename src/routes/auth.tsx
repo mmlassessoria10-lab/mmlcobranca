@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Wallet } from "lucide-react";
-import photogenicLogo from "@/assets/photogenic-logo-final2.png.asset.json";
+import photogenicLogo from "@/assets/photogenic-logo-v3.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Entrar | Photogenic" }] }),
