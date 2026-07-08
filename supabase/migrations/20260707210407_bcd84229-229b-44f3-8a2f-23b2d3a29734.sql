@@ -1,0 +1,3 @@
+
+-- 1) Add 'cliente' to enum
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'cliente';
