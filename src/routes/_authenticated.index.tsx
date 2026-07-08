@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { brl, fmtDate } from "@/lib/format";
 import { AlertTriangle, CheckCircle2, Clock, DollarSign, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import photogenicLogo from "@/assets/photogenic-logo-2.jpeg.asset.json";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({ meta: [{ title: "Dashboard | Photogenic" }] }),
@@ -63,9 +64,16 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Visão geral do parcelamento</p>
+      <header className="flex items-center gap-4">
+        <img
+          src={photogenicLogo.url}
+          alt="Photogenic Image"
+          className="w-16 h-16 rounded-lg object-contain bg-white shrink-0"
+        />
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Visão geral do parcelamento</p>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
