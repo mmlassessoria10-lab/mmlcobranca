@@ -446,6 +446,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_generate_contract_numbers: {
+        Args: never
+        Returns: {
+          contracts_numbered: number
+          customers_synced: number
+        }[]
+      }
       backfill_contract_numbers: { Args: never; Returns: number }
       has_role: {
         Args: {
