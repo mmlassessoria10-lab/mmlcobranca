@@ -61,17 +61,14 @@ function AuthedLayout() {
   return (
     <div className="min-h-screen flex bg-muted/30">
       <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
-        <div className="p-5 border-b border-sidebar-border">
-          <div className="flex items-center gap-2">
+        <div className="p-4 border-b border-sidebar-border">
+          <div className="flex flex-col items-center gap-2">
             <img
               src={photogenicLogo.url}
-              alt="Photogenic"
-              className="w-10 h-10 rounded-lg object-contain bg-white"
+              alt="Photogenic Image"
+              className="w-40 h-40 rounded-lg object-contain bg-white"
             />
-            <div>
-              <h1 className="font-bold text-base text-sidebar-foreground">Photogenic</h1>
-              <p className="text-xs text-muted-foreground">Controle de parcelamento</p>
-            </div>
+            <p className="text-xs text-muted-foreground">Controle de parcelamento</p>
           </div>
         </div>
         <nav className="flex-1 p-3 space-y-1">
