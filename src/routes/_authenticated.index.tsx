@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { brl, fmtDate } from "@/lib/format";
 import { AlertTriangle, CheckCircle2, Clock, DollarSign, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import photogenicLogo from "@/assets/photogenic-logo-3.jpg.asset.json";
+import photogenicLogo from "@/assets/photogenic-logo-transparent.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({ meta: [{ title: "Dashboard | Photogenic" }] }),
@@ -68,7 +68,7 @@ function Dashboard() {
         <img
           src={photogenicLogo.url}
           alt="Photogenic Image"
-          className="w-48 h-48 object-contain bg-black rounded-lg p-2 shrink-0"
+          className="w-48 h-48 object-contain shrink-0"
         />
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
