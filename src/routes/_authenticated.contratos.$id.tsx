@@ -332,6 +332,60 @@ function ContractDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Transferir contrato</DialogTitle>
+            <DialogDescription>Todas as parcelas serão movidas para o contrato destino e este contrato será excluído.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Contrato destino</Label>
+            <Select value={transferTarget} onValueChange={setTransferTarget}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                {(allContracts ?? []).filter((c: any) => c.id !== id).map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>{c.customers?.name} — {c.description}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setTransferOpen(false)}>Cancelar</Button>
+            <Button onClick={doTransfer}>Transferir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={legalOpen} onOpenChange={setLegalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar ao Departamento Jurídico</DialogTitle>
+            <DialogDescription>Abre um caso jurídico vinculado a este contrato.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Etapa inicial</Label>
+              <Select value={legalForm.stage} onValueChange={(v) => setLegalForm({ ...legalForm, stage: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="notificacao_extrajudicial">Notificação extrajudicial</SelectItem>
+                  <SelectItem value="protesto">Protesto</SelectItem>
+                  <SelectItem value="acao_judicial">Ação judicial</SelectItem>
+                  <SelectItem value="acordo">Acordo em negociação</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div><Label>Advogado responsável</Label><Input value={legalForm.attorney_name} onChange={(e) => setLegalForm({ ...legalForm, attorney_name: e.target.value })} /></div>
+            <div><Label>Honorários (R$)</Label><Input type="number" step="0.01" value={legalForm.honorary_amount} onChange={(e) => setLegalForm({ ...legalForm, honorary_amount: e.target.value })} /></div>
+            <div><Label>Observações</Label><Input value={legalForm.notes} onChange={(e) => setLegalForm({ ...legalForm, notes: e.target.value })} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setLegalOpen(false)}>Cancelar</Button>
+            <Button onClick={sendToLegal}>Enviar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
