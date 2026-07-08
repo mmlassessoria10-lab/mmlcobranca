@@ -34,6 +34,7 @@ function ContratosPage() {
     installments_count: "12",
     first_due_date: new Date(Date.now() + 86400000 * 30).toISOString().slice(0, 10),
     vendor_id: "none",
+    contract_number: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -42,7 +43,7 @@ function ContratosPage() {
 
   const { data: customers } = useQuery({
     queryKey: ["customers-light"],
-    queryFn: async () => (await supabase.from("customers").select("id,name").order("name")).data ?? [],
+    queryFn: async () => (await supabase.from("customers").select("id,name,contract_number").order("name")).data ?? [],
   });
 
   const { data: vendors } = useQuery({
@@ -75,8 +76,9 @@ function ContratosPage() {
       total_amount: total,
       installments_count: count,
       first_due_date: form.first_due_date,
+      contract_number: form.contract_number?.trim() || null,
       ...(form.vendor_id && form.vendor_id !== "none" ? { vendor_id: form.vendor_id } : {}),
-    }).select().single();
+    } as any).select().single();
     if (error || !contract) return toast.error(error?.message ?? "Erro ao criar contrato");
 
     const installments = generateInstallments(total, count, form.first_due_date).map((p) => ({
@@ -169,7 +171,10 @@ function ContratosPage() {
               <div className="space-y-3">
                 <div>
                   <Label>Cliente *</Label>
-                  <Select value={form.customer_id} onValueChange={(v) => setForm({ ...form, customer_id: v })}>
+                  <Select value={form.customer_id} onValueChange={(v) => {
+                    const c = (customers as any[] | undefined)?.find((x) => x.id === v);
+                    setForm({ ...form, customer_id: v, contract_number: c?.contract_number ?? form.contract_number });
+                  }}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       {customers?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -177,6 +182,7 @@ function ContratosPage() {
                   </Select>
                 </div>
                 <div><Label>Descrição *</Label><Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Ex: Curso de inglês" /></div>
+                <div><Label>Nº do contrato</Label><Input value={form.contract_number} onChange={(e) => setForm({ ...form, contract_number: e.target.value })} placeholder="Preenchido automaticamente a partir do cliente" /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><Label>Valor total (R$) *</Label><Input type="number" step="0.01" value={form.total_amount} onChange={(e) => setForm({ ...form, total_amount: e.target.value })} /></div>
                   <div><Label>Nº parcelas *</Label><Input type="number" min="1" value={form.installments_count} onChange={(e) => setForm({ ...form, installments_count: e.target.value })} /></div>
@@ -209,6 +215,7 @@ function ContratosPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Cliente</TableHead>
+                <TableHead>Nº</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Valor</TableHead>
                 <TableHead>1º Venc.</TableHead>
@@ -226,6 +233,7 @@ function ContratosPage() {
                     onClick={() => { window.location.href = `/contratos/${c.id}`; }}
                   >
                     <TableCell className="font-medium">{c.customers?.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{c.contract_number || "—"}</TableCell>
                     <TableCell>{c.description}</TableCell>
                     <TableCell>{brl(c.total_amount)}</TableCell>
                     <TableCell>{fmtDate(c.first_due_date)}</TableCell>
