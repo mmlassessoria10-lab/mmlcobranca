@@ -275,7 +275,7 @@ function NotificacoesPage() {
             <Table>
               <TableHeader><TableRow>
                 <TableHead>Data</TableHead><TableHead>Cliente</TableHead><TableHead>Contrato</TableHead><TableHead>Modelo</TableHead>
-                <TableHead>Parc.</TableHead><TableHead>Original</TableHead><TableHead>Atualizado</TableHead>
+                <TableHead>Parc.</TableHead><TableHead>Original</TableHead><TableHead>Atualizado</TableHead><TableHead>Aceite</TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {sent.map((s: any) => (
@@ -287,6 +287,13 @@ function NotificacoesPage() {
                     <TableCell>{s.overdue_count}</TableCell>
                     <TableCell>{brl(s.original_amount)}</TableCell>
                     <TableCell className="font-medium text-amber-600">{brl(s.updated_amount)}</TableCell>
+                    <TableCell>
+                      {s.accepted_at ? (
+                        <Badge className="bg-emerald-600 hover:bg-emerald-600">Aceito {fmtDate(s.accepted_at)}</Badge>
+                      ) : s.accept_token ? (
+                        <Button size="sm" variant="outline" onClick={() => { const u = `${window.location.origin}/n/${s.accept_token}`; navigator.clipboard.writeText(u); toast.success("Link copiado"); }}>Copiar link</Button>
+                      ) : "—"}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
