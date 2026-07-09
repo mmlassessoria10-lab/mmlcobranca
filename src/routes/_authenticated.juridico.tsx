@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { brl, fmtDate } from "@/lib/format";
-import { Scale, Plus, CheckCircle2, ExternalLink } from "lucide-react";
+import { Scale, Plus, CheckCircle2, ExternalLink, ArrowRightCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 
@@ -46,6 +46,24 @@ function JuridicoPage() {
   const canEdit = isAdmin || hasRole("financeiro") || hasRole("cobranca");
   const [openCase, setOpenCase] = useState<any | null>(null);
   const [newEvent, setNewEvent] = useState({ event_type: "contato", event_date: new Date().toISOString().slice(0, 10), description: "", amount: "" });
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transfer, setTransfer] = useState({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", notes: "" });
+  const [contractSearch, setContractSearch] = useState("");
+
+  const { data: eligible } = useQuery({
+    queryKey: ["contracts-eligible-legal"],
+    enabled: transferOpen && canEdit,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("contracts")
+        .select("id,description,contract_number,total_amount,legal_status,customers(name,document)")
+        .neq("legal_status", "juridico")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   const { data: cases, isLoading } = useQuery({
     queryKey: ["legal-cases"],
@@ -110,12 +128,49 @@ function JuridicoPage() {
     qc.invalidateQueries({ queryKey: ["legal-cases"] });
   }
 
+  async function submitTransfer() {
+    if (!transfer.contract_id) return toast.error("Selecione o contrato");
+    const honor = transfer.honorary_amount ? Number(transfer.honorary_amount.replace(",", ".")) : null;
+    const { error: e1 } = await (supabase as any).from("legal_cases").insert({
+      contract_id: transfer.contract_id,
+      stage: transfer.stage,
+      attorney_name: transfer.attorney_name || null,
+      honorary_amount: honor,
+      notes: transfer.notes || null,
+    });
+    if (e1) return toast.error(e1.message);
+    const { error: e2 } = await (supabase as any).from("contracts").update({ legal_status: "juridico" }).eq("id", transfer.contract_id);
+    if (e2) return toast.error(e2.message);
+    toast.success("Contrato transferido para o jurídico");
+    setTransferOpen(false);
+    setTransfer({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", notes: "" });
+    setContractSearch("");
+    qc.invalidateQueries({ queryKey: ["legal-cases"] });
+    qc.invalidateQueries({ queryKey: ["contracts-eligible-legal"] });
+  }
+
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold flex items-center gap-2"><Scale className="w-7 h-7" /> Departamento Jurídico</h1>
-        <p className="text-muted-foreground mt-1">{cases?.length ?? 0} caso(s) em andamento</p>
+      <header className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2"><Scale className="w-7 h-7" /> Departamento Jurídico</h1>
+          <p className="text-muted-foreground mt-1">{cases?.length ?? 0} caso(s) em andamento</p>
+        </div>
+        {canEdit && (
+          <Button onClick={() => setTransferOpen(true)}>
+            <ArrowRightCircle className="w-4 h-4 mr-2" /> Transferir contrato para o jurídico
+          </Button>
+        )}
       </header>
+
+      {canEdit && (
+        <Card className="bg-muted/30">
+          <CardContent className="pt-6 text-sm text-muted-foreground space-y-1">
+            <p><b className="text-foreground">Como funciona:</b> ao transferir um contrato, ele passa a ter status <b>Jurídico</b> e as cobranças normais são pausadas neste ambiente.</p>
+            <p>Cada caso possui etapas (notificação, protesto, ação judicial, acordo) e um histórico de andamentos. Ao encerrar, o contrato retorna para <b>ativo</b>.</p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card><CardContent className="pt-6">
         {isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p>
@@ -243,6 +298,73 @@ function JuridicoPage() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Transferir contrato para o jurídico</DialogTitle>
+            <DialogDescription>Selecione o contrato e defina a etapa inicial. O contrato passará ao status Jurídico.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Buscar contrato (cliente, documento ou nº)</Label>
+              <Input placeholder="Digite para filtrar..." value={contractSearch} onChange={(e) => setContractSearch(e.target.value)} />
+            </div>
+            <div>
+              <Label>Contrato</Label>
+              <Select value={transfer.contract_id} onValueChange={(v) => setTransfer({ ...transfer, contract_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  {(eligible ?? [])
+                    .filter((c: any) => {
+                      const q = contractSearch.trim().toLowerCase();
+                      if (!q) return true;
+                      return (
+                        (c.customers?.name ?? "").toLowerCase().includes(q) ||
+                        (c.customers?.document ?? "").toLowerCase().includes(q) ||
+                        (c.contract_number ?? "").toLowerCase().includes(q) ||
+                        (c.description ?? "").toLowerCase().includes(q)
+                      );
+                    })
+                    .slice(0, 100)
+                    .map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.customers?.name} {c.contract_number ? `· Nº ${c.contract_number}` : ""} · {brl(c.total_amount)}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Etapa inicial</Label>
+              <Select value={transfer.stage} onValueChange={(v) => setTransfer({ ...transfer, stage: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(STAGE_LABEL).filter(([k]) => k !== "encerrado").map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Advogado responsável</Label>
+              <Input value={transfer.attorney_name} onChange={(e) => setTransfer({ ...transfer, attorney_name: e.target.value })} />
+            </div>
+            <div>
+              <Label>Honorários (R$)</Label>
+              <Input type="number" step="0.01" value={transfer.honorary_amount} onChange={(e) => setTransfer({ ...transfer, honorary_amount: e.target.value })} />
+            </div>
+            <div>
+              <Label>Observações</Label>
+              <Textarea value={transfer.notes} onChange={(e) => setTransfer({ ...transfer, notes: e.target.value })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setTransferOpen(false)}>Cancelar</Button>
+            <Button onClick={submitTransfer}><ArrowRightCircle className="w-4 h-4 mr-2" />Transferir</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
