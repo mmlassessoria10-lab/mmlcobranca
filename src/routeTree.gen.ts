@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
 import { Route as NTokenRouteImport } from './routes/n.$token'
+import { Route as ATokenRouteImport } from './routes/a.$token'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated.relatorios'
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated.notificacoes'
 import { Route as AuthenticatedMinhasParcelasRouteImport } from './routes/_authenticated.minhas-parcelas'
@@ -50,6 +51,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
 const NTokenRoute = NTokenRouteImport.update({
   id: '/n/$token',
   path: '/n/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ATokenRoute = ATokenRouteImport.update({
+  id: '/a/$token',
+  path: '/a/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/_authenticated/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/minhas-parcelas'
     | '/notificacoes'
     | '/relatorios'
+    | '/a/$token'
     | '/n/$token'
     | '/contratos/$id'
     | '/api/public/agreements/$token'
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/minhas-parcelas'
     | '/notificacoes'
     | '/relatorios'
+    | '/a/$token'
     | '/n/$token'
     | '/'
     | '/contratos/$id'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/_authenticated/minhas-parcelas'
     | '/_authenticated/notificacoes'
     | '/_authenticated/relatorios'
+    | '/a/$token'
     | '/n/$token'
     | '/_authenticated/'
     | '/_authenticated/contratos/$id'
@@ -247,6 +259,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   TrustRoute: typeof TrustRoute
+  ATokenRoute: typeof ATokenRoute
   NTokenRoute: typeof NTokenRoute
   ApiPublicAgreementsTokenRoute: typeof ApiPublicAgreementsTokenRoute
   ApiPublicHooksRemindersRoute: typeof ApiPublicHooksRemindersRoute
@@ -288,6 +301,13 @@ declare module '@tanstack/react-router' {
       path: '/n/$token'
       fullPath: '/n/$token'
       preLoaderRoute: typeof NTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/a/$token': {
+      id: '/a/$token'
+      path: '/a/$token'
+      fullPath: '/a/$token'
+      preLoaderRoute: typeof ATokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/relatorios': {
@@ -432,6 +452,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   TrustRoute: TrustRoute,
+  ATokenRoute: ATokenRoute,
   NTokenRoute: NTokenRoute,
   ApiPublicAgreementsTokenRoute: ApiPublicAgreementsTokenRoute,
   ApiPublicHooksRemindersRoute: ApiPublicHooksRemindersRoute,
