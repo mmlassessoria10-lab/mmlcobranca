@@ -43,6 +43,10 @@ function computeOverdue(installments: any[]) {
       return { ...i, days, amount, fine, interest, updated };
     })
     .filter(Boolean) as any[];
+  items.sort((a, b) => {
+    const d = a.due_date.localeCompare(b.due_date);
+    return d !== 0 ? d : (a.number ?? 0) - (b.number ?? 0);
+  });
   const original = items.reduce((a, i) => a + i.amount, 0);
   const fine = items.reduce((a, i) => a + i.fine, 0);
   const interest = items.reduce((a, i) => a + i.interest, 0);
