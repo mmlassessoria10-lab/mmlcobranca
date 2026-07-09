@@ -235,14 +235,18 @@ function AdminPage() {
                           <Button size="sm" variant="outline" onClick={() => copyLink(inv.token)} disabled={status !== "pendente"}>
                             <Copy className="w-3.5 h-3.5 mr-1" />Link
                           </Button>
-                          <Button size="sm" variant="outline" asChild disabled={status !== "pendente"}>
-                            <a
-                              href={waLink(inv.token, invPhone || "", inv.role as AppRole)}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5 mr-1" />WhatsApp
-                            </a>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={status !== "pendente" || !invPhone.trim()}
+                            onClick={() => {
+                              if (!openWhatsAppComposer(invPhone, inviteMessage(inv.token, inv.role as AppRole))) {
+                                return toast.error("Informe o telefone acima antes de enviar");
+                              }
+                              toast.success("Mensagem copiada. Se o WhatsApp não abrir, cole no contato.");
+                            }}
+                          >
+                            <MessageCircle className="w-3.5 h-3.5 mr-1" />WhatsApp
                           </Button>
                         </TableCell>
                       </TableRow>
