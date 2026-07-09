@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { brl, fmtDate, installmentStatus } from "@/lib/format";
-import { Download, Send, CheckCircle2 } from "lucide-react";
+import { Download, Send, CheckCircle2, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
   head: () => ({ meta: [{ title: "Relatórios | Photogenic" }] }),
@@ -33,6 +33,35 @@ function RelatoriosPage() {
   const [payTarget, setPayTarget] = useState<any | null>(null);
   const [payDate, setPayDate] = useState<string>("");
   const [payAmount, setPayAmount] = useState<string>("");
+  const [editTarget, setEditTarget] = useState<any | null>(null);
+  const [editAmount, setEditAmount] = useState<string>("");
+  const [editDueDate, setEditDueDate] = useState<string>("");
+  const [editPaidDate, setEditPaidDate] = useState<string>("");
+
+  function openEdit(inst: any) {
+    setEditTarget(inst);
+    setEditAmount(Number(inst.amount).toFixed(2));
+    setEditDueDate(inst.due_date ?? "");
+    setEditPaidDate(inst.paid_at ? String(inst.paid_at).slice(0, 10) : "");
+  }
+
+  async function confirmEdit() {
+    if (!editTarget) return;
+    const valor = Number(editAmount.replace(",", "."));
+    if (!Number.isFinite(valor) || valor <= 0) return toast.error("Informe um valor válido");
+    if (!editDueDate) return toast.error("Informe a data de vencimento");
+    const patch: any = { amount: valor, due_date: editDueDate };
+    if (editTarget.paid_at) {
+      if (!editPaidDate) return toast.error("Informe a data do pagamento");
+      patch.paid_at = new Date(editPaidDate + "T12:00:00").toISOString();
+    }
+    const { error } = await supabase.from("installments").update(patch).eq("id", editTarget.id);
+    if (error) return toast.error(error.message);
+    toast.success("Parcela atualizada");
+    setEditTarget(null);
+    qc.invalidateQueries({ queryKey: ["report-installments"] });
+    qc.invalidateQueries({ queryKey: ["dashboard"] });
+  }
 
   async function confirmPay() {
     if (!payTarget) return;
@@ -215,15 +244,20 @@ function RelatoriosPage() {
                 <TableCell><Badge variant={r._status.variant}>{r._status.label}</Badge></TableCell>
                 {canPay && (
                   <TableCell className="text-right">
-                    {r.paid_at ? (
-                      <Button size="sm" variant="ghost" onClick={() => reopen(r)}>
-                        Reabrir
+                    <div className="flex justify-end gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => openEdit(r)}>
+                        <Pencil className="w-3.5 h-3.5 mr-1" />Editar
                       </Button>
-                    ) : (
-                      <Button size="sm" onClick={() => { setPayTarget(r); setPayDate(""); setPayAmount(Number(r.amount).toFixed(2)); }}>
-                        <CheckCircle2 className="w-3.5 h-3.5 mr-1" />Dar baixa
-                      </Button>
-                    )}
+                      {r.paid_at ? (
+                        <Button size="sm" variant="ghost" onClick={() => reopen(r)}>
+                          Reabrir
+                        </Button>
+                      ) : (
+                        <Button size="sm" onClick={() => { setPayTarget(r); setPayDate(""); setPayAmount(Number(r.amount).toFixed(2)); }}>
+                          <CheckCircle2 className="w-3.5 h-3.5 mr-1" />Dar baixa
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 )}
               </TableRow>
@@ -270,6 +304,35 @@ function RelatoriosPage() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setPayTarget(null)}>Cancelar</Button>
             <Button onClick={confirmPay}>Confirmar baixa</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar parcela</DialogTitle>
+            <DialogDescription>
+              {editTarget && (
+                <>Parcela {editTarget.number} · {editTarget.contracts?.customers?.name}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="edit-amount">Valor (R$)</Label>
+            <Input id="edit-amount" type="number" step="0.01" min="0" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} />
+            <Label htmlFor="edit-due" className="pt-2 block">Vencimento</Label>
+            <Input id="edit-due" type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
+            {editTarget?.paid_at && (
+              <>
+                <Label htmlFor="edit-paid" className="pt-2 block">Data do pagamento</Label>
+                <Input id="edit-paid" type="date" value={editPaidDate} onChange={(e) => setEditPaidDate(e.target.value)} />
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditTarget(null)}>Cancelar</Button>
+            <Button onClick={confirmEdit}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
