@@ -8,7 +8,23 @@ import { CheckCircle2, ShieldCheck, Loader2, Handshake, AlertTriangle } from "lu
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/a/$token")({
-  head: () => ({ meta: [{ title: "Acordo Extrajudicial" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => {
+    const title = "⚠️ Acordo Extrajudicial — Ação Requerida";
+    const description = "Proposta formal de regularização de débito. Aguardamos seu retorno com máxima prioridade para evitar medidas judiciais. Acesse para conferir as condições e realizar o aceite digital.";
+    return {
+      meta: [
+        { title },
+        { name: "robots", content: "noindex,nofollow" },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+    };
+  },
   component: PublicAgreement,
 });
 

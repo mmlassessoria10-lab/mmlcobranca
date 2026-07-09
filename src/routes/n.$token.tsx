@@ -8,7 +8,23 @@ import { CheckCircle2, ShieldCheck, Loader2, AlertTriangle } from "lucide-react"
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/n/$token")({
-  head: () => ({ meta: [{ title: "Notificação Extrajudicial" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => {
+    const title = "⚠️ Notificação Extrajudicial — Ação Requerida";
+    const description = "Comunicação formal de cobrança. Aguardamos seu retorno com máxima prioridade para evitar medidas judiciais. Acesse para visualizar e realizar o aceite digital.";
+    return {
+      meta: [
+        { title },
+        { name: "robots", content: "noindex,nofollow" },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+    };
+  },
   component: PublicNotification,
 });
 
