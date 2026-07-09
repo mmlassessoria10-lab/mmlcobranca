@@ -73,6 +73,7 @@ function NotificacoesPage() {
   const [selTemplate, setSelTemplate] = useState<string>("");
   const [previewBody, setPreviewBody] = useState<string>("");
   const [previewSubject, setPreviewSubject] = useState<string>("");
+  const [lastSent, setLastSent] = useState<{ id: string; accept_token: string } | null>(null);
 
   const { data: templates } = useQuery({
     queryKey: ["notif-templates"],
@@ -190,7 +191,7 @@ function NotificacoesPage() {
 
   async function registerSent() {
     if (!selectedCustomer || !previewBody) return toast.error("Gere a prévia primeiro");
-    const { error } = await (supabase as any).from("notifications_sent").insert({
+    const { data, error } = await (supabase as any).from("notifications_sent").insert({
       customer_id: selectedCustomer.id,
       contract_id: selectedContract?.id ?? null,
       template_id: selectedTemplate?.id ?? null,
@@ -202,8 +203,9 @@ function NotificacoesPage() {
       interest_amount: overdue.interest,
       overdue_count: overdue.items.length,
       sent_by: user?.id,
-    });
+    }).select("id,accept_token").single();
     if (error) return toast.error(error.message);
+    setLastSent({ id: data.id, accept_token: data.accept_token });
     toast.success("Notificação registrada");
     qc.invalidateQueries({ queryKey: ["notif-sent"] });
   }
