@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { brl, fmtDate } from "@/lib/format";
-import { Scale, Plus, CheckCircle2, ExternalLink, ArrowRightCircle, Undo2, Trash2 } from "lucide-react";
+import { Scale, Plus, CheckCircle2, ExternalLink, ArrowRightCircle, Undo2, Trash2, Download, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 
@@ -47,7 +47,7 @@ function JuridicoPage() {
   const [openCase, setOpenCase] = useState<any | null>(null);
   const [newEvent, setNewEvent] = useState({ event_type: "contato", event_date: new Date().toISOString().slice(0, 10), description: "", amount: "" });
   const [transferOpen, setTransferOpen] = useState(false);
-  const [transfer, setTransfer] = useState({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", notes: "" });
+  const [transfer, setTransfer] = useState({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", honorary_rate: "20", notes: "" });
   const [contractSearch, setContractSearch] = useState("");
 
   const { data: eligible } = useQuery({
@@ -56,7 +56,7 @@ function JuridicoPage() {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("contracts")
-        .select("id,description,contract_number,total_amount,legal_status,customers(name,document)")
+        .select("id,description,contract_number,total_amount,legal_status,customers(name,document),installments(amount,paid_at)")
         .neq("legal_status", "juridico")
         .order("created_at", { ascending: false })
         .limit(500);
@@ -93,9 +93,69 @@ function JuridicoPage() {
   function totals(c: any) {
     const ins = c.contracts?.installments ?? [];
     const aberto = ins.filter((i: any) => !i.paid_at).reduce((a: number, i: any) => a + Number(i.amount), 0);
+    const pago = ins.filter((i: any) => i.paid_at).reduce((a: number, i: any) => a + Number(i.amount), 0);
     const today = new Date(); today.setHours(0,0,0,0);
     const atraso = ins.filter((i: any) => !i.paid_at && new Date(i.due_date + "T00:00:00") < today).length;
-    return { aberto, atraso };
+    return { aberto, pago, atraso };
+  }
+
+  const selectedContract = (eligible ?? []).find((c: any) => c.id === transfer.contract_id);
+  const selectedAberto = selectedContract
+    ? (selectedContract.installments ?? []).filter((i: any) => !i.paid_at).reduce((a: number, i: any) => a + Number(i.amount), 0)
+    : 0;
+
+  function applyRate(rate: string) {
+    const r = Number(rate.replace(",", "."));
+    if (!isNaN(r) && selectedAberto > 0) {
+      setTransfer((t) => ({ ...t, honorary_rate: rate, honorary_amount: (selectedAberto * r / 100).toFixed(2) }));
+    } else {
+      setTransfer((t) => ({ ...t, honorary_rate: rate }));
+    }
+  }
+
+  // ==== Reports aggregation ====
+  const report = (() => {
+    const list = cases ?? [];
+    const byStage: Record<string, number> = {};
+    let aReceber = 0, recebido = 0, honorarios = 0;
+    for (const c of list) {
+      byStage[c.stage] = (byStage[c.stage] ?? 0) + 1;
+      const t = totals(c);
+      aReceber += t.aberto;
+      recebido += t.pago;
+      honorarios += Number(c.honorary_amount ?? 0);
+    }
+    return { total: list.length, byStage, aReceber, recebido, honorarios };
+  })();
+
+  function exportCsv() {
+    const rows = [
+      ["Cliente","Documento","Contrato","Nº","Etapa","Advogado","Aberto em","Valor em aberto","Valor recebido","Honorários","Parcelas em atraso"],
+      ...(cases ?? []).map((c: any) => {
+        const t = totals(c);
+        return [
+          c.contracts?.customers?.name ?? "",
+          c.contracts?.customers?.document ?? "",
+          c.contracts?.description ?? "",
+          c.contracts?.contract_number ?? "",
+          STAGE_LABEL[c.stage] ?? c.stage,
+          c.attorney_name ?? "",
+          fmtDate(c.opened_at),
+          t.aberto.toFixed(2).replace(".",","),
+          t.pago.toFixed(2).replace(".",","),
+          Number(c.honorary_amount ?? 0).toFixed(2).replace(".",","),
+          String(t.atraso),
+        ];
+      }),
+    ];
+    const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g,'""')}"`).join(";")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `juridico-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function addEvent() {
@@ -143,7 +203,7 @@ function JuridicoPage() {
     if (e2) return toast.error(e2.message);
     toast.success("Contrato transferido para o jurídico");
     setTransferOpen(false);
-    setTransfer({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", notes: "" });
+    setTransfer({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", honorary_rate: "20", notes: "" });
     setContractSearch("");
     qc.invalidateQueries({ queryKey: ["legal-cases"] });
     qc.invalidateQueries({ queryKey: ["contracts-eligible-legal"] });
