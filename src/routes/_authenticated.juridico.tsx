@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { brl, fmtDate } from "@/lib/format";
-import { Scale, Plus, CheckCircle2, ExternalLink, ArrowRightCircle } from "lucide-react";
+import { Scale, Plus, CheckCircle2, ExternalLink, ArrowRightCircle, Undo2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 
@@ -149,6 +149,32 @@ function JuridicoPage() {
     qc.invalidateQueries({ queryKey: ["contracts-eligible-legal"] });
   }
 
+  async function returnCase(c: any) {
+    if (!confirm(`Retornar o contrato de ${c.contracts?.customers?.name ?? ""} para ativo? O caso jurídico será removido.`)) return;
+    const { error: e1 } = await (supabase as any).from("legal_case_events").delete().eq("case_id", c.id);
+    if (e1) return toast.error(e1.message);
+    const { error: e2 } = await (supabase as any).from("legal_cases").delete().eq("id", c.id);
+    if (e2) return toast.error(e2.message);
+    await (supabase as any).from("contracts").update({ legal_status: "ativo" }).eq("id", c.contract_id);
+    toast.success("Contrato retornado ao fluxo normal");
+    setOpenCase(null);
+    qc.invalidateQueries({ queryKey: ["legal-cases"] });
+    qc.invalidateQueries({ queryKey: ["contracts-eligible-legal"] });
+  }
+
+  async function deleteCase(c: any) {
+    if (!confirm(`Excluir definitivamente este lançamento jurídico? Esta ação não pode ser desfeita.`)) return;
+    const { error: e1 } = await (supabase as any).from("legal_case_events").delete().eq("case_id", c.id);
+    if (e1) return toast.error(e1.message);
+    const { error: e2 } = await (supabase as any).from("legal_cases").delete().eq("id", c.id);
+    if (e2) return toast.error(e2.message);
+    await (supabase as any).from("contracts").update({ legal_status: "ativo" }).eq("id", c.contract_id);
+    toast.success("Lançamento excluído");
+    setOpenCase(null);
+    qc.invalidateQueries({ queryKey: ["legal-cases"] });
+    qc.invalidateQueries({ queryKey: ["contracts-eligible-legal"] });
+  }
+
   return (
     <div className="space-y-6">
       <header className="flex items-start justify-between gap-4 flex-wrap">
@@ -186,7 +212,7 @@ function JuridicoPage() {
                 <TableHead>Parcelas em atraso</TableHead>
                 <TableHead>Advogado</TableHead>
                 <TableHead>Aberto em</TableHead>
-                <TableHead className="w-10"></TableHead>
+                <TableHead className="w-32 text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -204,7 +230,21 @@ function JuridicoPage() {
                     <TableCell><span className="text-destructive font-medium">{t.atraso}</span></TableCell>
                     <TableCell className="text-muted-foreground">{c.attorney_name || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{fmtDate(c.opened_at)}</TableCell>
-                    <TableCell><ExternalLink className="w-4 h-4 text-muted-foreground" /></TableCell>
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                      {canEdit ? (
+                        <div className="flex justify-end gap-1">
+                          <Button size="icon" variant="ghost" title="Retornar para ativo" onClick={() => returnCase(c)}>
+                            <Undo2 className="w-4 h-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" title="Excluir lançamento" onClick={() => deleteCase(c)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                          <ExternalLink className="w-4 h-4 text-muted-foreground self-center ml-1" />
+                        </div>
+                      ) : (
+                        <ExternalLink className="w-4 h-4 text-muted-foreground inline" />
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -294,6 +334,16 @@ function JuridicoPage() {
               </Card>
 
               <DialogFooter>
+                {canEdit && (
+                  <>
+                    <Button variant="outline" onClick={() => returnCase(openCase)}>
+                      <Undo2 className="w-4 h-4 mr-2" /> Retornar para ativo
+                    </Button>
+                    <Button variant="destructive" onClick={() => deleteCase(openCase)}>
+                      <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                    </Button>
+                  </>
+                )}
                 <Button variant="ghost" onClick={() => setOpenCase(null)}>Fechar</Button>
               </DialogFooter>
             </>
