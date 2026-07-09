@@ -47,7 +47,7 @@ function JuridicoPage() {
   const [openCase, setOpenCase] = useState<any | null>(null);
   const [newEvent, setNewEvent] = useState({ event_type: "contato", event_date: new Date().toISOString().slice(0, 10), description: "", amount: "" });
   const [transferOpen, setTransferOpen] = useState(false);
-  const [transfer, setTransfer] = useState({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", honorary_rate: "20", notes: "" });
+  const [transfer, setTransfer] = useState({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", honorary_rate: "30", notes: "" });
   const [contractSearch, setContractSearch] = useState("");
 
   const { data: eligible } = useQuery({
@@ -203,7 +203,7 @@ function JuridicoPage() {
     if (e2) return toast.error(e2.message);
     toast.success("Contrato transferido para o jurídico");
     setTransferOpen(false);
-    setTransfer({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", honorary_rate: "20", notes: "" });
+    setTransfer({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", honorary_rate: "30", notes: "" });
     setContractSearch("");
     qc.invalidateQueries({ queryKey: ["legal-cases"] });
     qc.invalidateQueries({ queryKey: ["contracts-eligible-legal"] });
