@@ -52,7 +52,7 @@ export function buildPixPayload(opts: { amount?: number; txid?: string } = {}): 
 
   const parts = [
     tlv("00", "01"),
-    tlv("26", gui + key).slice(0, 0) + merchantAccount, // keep single 26 field
+    merchantAccount,
     tlv("52", "0000"),
     tlv("53", "986"),
   ];
