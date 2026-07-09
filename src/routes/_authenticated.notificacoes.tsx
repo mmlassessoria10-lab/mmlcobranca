@@ -367,6 +367,19 @@ function NotificacoesPage() {
           <div className="flex gap-2 mt-3">
             <Button variant="outline" onClick={refreshPreview}><RefreshCw className="w-4 h-4 mr-2" /> Atualizar prévia</Button>
             <Button variant="outline" onClick={printPreview} disabled={!previewBody}><Printer className="w-4 h-4 mr-2" /> Imprimir / PDF</Button>
+            <Button
+              variant="outline"
+              disabled={!previewBody || !selectedCustomer?.phone}
+              onClick={() => {
+                const phone = (selectedCustomer?.phone ?? "").replace(/\D/g, "");
+                if (!phone) return toast.error("Cliente sem telefone cadastrado");
+                const num = phone.length <= 11 ? `55${phone}` : phone;
+                const txt = `*${previewSubject || "Notificação Extrajudicial"}*\n\n${previewBody}`;
+                window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank");
+              }}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+            </Button>
             <Button onClick={registerSent} disabled={!previewBody}><Send className="w-4 h-4 mr-2" /> Registrar envio</Button>
           </div>
 
