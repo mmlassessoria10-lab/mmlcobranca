@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { brl, fmtDate, installmentStatus } from "@/lib/format";
-import { Download, Send, CheckCircle2, Pencil } from "lucide-react";
+import { Download, Send, CheckCircle2, Pencil, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
   head: () => ({ meta: [{ title: "Relatórios | Photogenic" }] }),
@@ -97,6 +97,15 @@ function RelatoriosPage() {
       .eq("id", inst.id);
     if (error) return toast.error(error.message);
     toast.success("Parcela reaberta");
+    qc.invalidateQueries({ queryKey: ["report-installments"] });
+    qc.invalidateQueries({ queryKey: ["dashboard"] });
+  }
+
+  async function removeInstallment(inst: any) {
+    if (!confirm(`Excluir a parcela ${inst.number} de ${inst.contracts?.customers?.name ?? ""}? Esta ação não pode ser desfeita.`)) return;
+    const { error } = await supabase.from("installments").delete().eq("id", inst.id);
+    if (error) return toast.error(error.message);
+    toast.success("Parcela excluída");
     qc.invalidateQueries({ queryKey: ["report-installments"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
   }
@@ -257,6 +266,9 @@ function RelatoriosPage() {
                           <CheckCircle2 className="w-3.5 h-3.5 mr-1" />Dar baixa
                         </Button>
                       )}
+                      <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => removeInstallment(r)}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
                     </div>
                   </TableCell>
                 )}
