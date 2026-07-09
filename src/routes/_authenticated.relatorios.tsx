@@ -94,7 +94,8 @@ function RelatoriosPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("installments")
-        .select("id,number,due_date,amount,paid_at,contracts(id,description,contract_number,customers(name))")
+        .select("id,number,due_date,amount,paid_at,contracts!inner(id,description,contract_number,legal_status,customers(name))")
+        .not("contracts.legal_status", "eq", "juridico")
         .order("due_date", { ascending: true });
       return data ?? [];
     },
