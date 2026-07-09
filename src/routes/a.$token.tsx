@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, ShieldCheck, Loader2, Handshake } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Loader2, Handshake, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/a/$token")({
@@ -63,6 +63,15 @@ function PublicAgreement() {
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-4">
+        <div className="rounded-lg border-2 border-amber-500/60 bg-amber-500/10 p-4 flex gap-3">
+          <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-bold text-amber-700 dark:text-amber-500 uppercase tracking-wide">Acordo Extrajudicial</p>
+            <p className="mt-1 text-foreground">
+              Trata-se de <b>proposta formal de regularização de débito</b>. Aguardamos seu retorno com a <b>máxima prioridade</b> para evitar a adoção de medidas judiciais cabíveis. Confira as condições abaixo e realize o aceite digital ao final.
+            </p>
+          </div>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2"><Handshake className="w-5 h-5" /> {data.subject || "Acordo Extrajudicial"}</CardTitle>
