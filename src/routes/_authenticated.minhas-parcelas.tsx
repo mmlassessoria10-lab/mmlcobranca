@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { brl, fmtDate, installmentStatus } from "@/lib/format";
-import { Wallet, CheckCircle2, Clock, AlertTriangle, Copy } from "lucide-react";
+import { Wallet, CheckCircle2, Clock, AlertTriangle, Copy, QrCode } from "lucide-react";
 import { PIX_KEY, PIX_KEY_LABEL, copyPix } from "@/lib/pix";
+import { PixQrDialog } from "@/components/PixQrDialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/minhas-parcelas")({
@@ -15,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/minhas-parcelas")({
 });
 
 function MinhasParcelas() {
+  const [pix, setPix] = useState<{ amount?: number; title?: string; txid?: string } | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ["minhas-parcelas"],
     queryFn: async () => {
@@ -75,16 +78,21 @@ function MinhasParcelas() {
               Chave ({PIX_KEY_LABEL}): <span className="font-mono">{PIX_KEY}</span>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={async () => {
-              const ok = await copyPix();
-              ok ? toast.success("Chave PIX copiada") : toast.error("Não foi possível copiar");
-            }}
-          >
-            <Copy className="w-4 h-4 mr-2" /> Copiar chave PIX
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                const ok = await copyPix();
+                ok ? toast.success("Chave PIX copiada") : toast.error("Não foi possível copiar");
+              }}
+            >
+              <Copy className="w-4 h-4 mr-2" /> Copiar chave
+            </Button>
+            <Button size="sm" onClick={() => setPix({ title: "Pagamento via PIX" })}>
+              <QrCode className="w-4 h-4 mr-2" /> Gerar QR Code
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -154,15 +162,16 @@ function MinhasParcelas() {
                                   size="sm"
                                   variant="outline"
                                   className="h-7 px-2 text-xs"
-                                  onClick={async () => {
-                                    const ok = await copyPix();
-                                    ok
-                                      ? toast.success(`Chave PIX copiada • ${brl(i.amount)}`)
-                                      : toast.error("Não foi possível copiar");
-                                  }}
-                                  title={`Copiar chave PIX (${PIX_KEY})`}
+                                  onClick={() =>
+                                    setPix({
+                                      amount: Number(i.amount),
+                                      title: `Parcela ${i.number} • ${brl(i.amount)}`,
+                                      txid: `PARC${i.number}`,
+                                    })
+                                  }
+                                  title="Gerar QR Code PIX com valor da parcela"
                                 >
-                                  <Copy className="w-3 h-3 mr-1" /> Copiar PIX
+                                  <QrCode className="w-3 h-3 mr-1" /> Pagar PIX
                                 </Button>
                               )}
                             </td>
@@ -176,6 +185,14 @@ function MinhasParcelas() {
           </Card>
         ))
       )}
+
+      <PixQrDialog
+        open={!!pix}
+        onOpenChange={(o) => !o && setPix(null)}
+        amount={pix?.amount}
+        title={pix?.title}
+        txid={pix?.txid}
+      />
     </div>
   );
 }
