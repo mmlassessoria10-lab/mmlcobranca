@@ -23,6 +23,7 @@ import { Route as AuthenticatedComissoesRouteImport } from './routes/_authentica
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated.clientes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated.contratos.$id'
+import { Route as ApiPublicNotificationsTokenRouteImport } from './routes/api/public/notifications.$token'
 import { Route as ApiPublicHooksRemindersRouteImport } from './routes/api/public/hooks/reminders'
 
 const TrustRoute = TrustRouteImport.update({
@@ -97,6 +98,12 @@ const AuthenticatedContratosIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedContratosRoute,
   } as any)
+const ApiPublicNotificationsTokenRoute =
+  ApiPublicNotificationsTokenRouteImport.update({
+    id: '/api/public/notifications/$token',
+    path: '/api/public/notifications/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksRemindersRoute = ApiPublicHooksRemindersRouteImport.update({
   id: '/api/public/hooks/reminders',
   path: '/api/public/hooks/reminders',
@@ -118,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
+  '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -134,6 +142,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
+  '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -152,6 +161,7 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
+  '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/contratos/$id'
     | '/api/public/hooks/reminders'
+    | '/api/public/notifications/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/'
     | '/contratos/$id'
     | '/api/public/hooks/reminders'
+    | '/api/public/notifications/$token'
   id:
     | '__root__'
     | '/_authenticated'
@@ -203,6 +215,7 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/contratos/$id'
     | '/api/public/hooks/reminders'
+    | '/api/public/notifications/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +223,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   TrustRoute: typeof TrustRoute
   ApiPublicHooksRemindersRoute: typeof ApiPublicHooksRemindersRoute
+  ApiPublicNotificationsTokenRoute: typeof ApiPublicNotificationsTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -312,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratosIdRouteImport
       parentRoute: typeof AuthenticatedContratosRoute
     }
+    '/api/public/notifications/$token': {
+      id: '/api/public/notifications/$token'
+      path: '/api/public/notifications/$token'
+      fullPath: '/api/public/notifications/$token'
+      preLoaderRoute: typeof ApiPublicNotificationsTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/reminders': {
       id: '/api/public/hooks/reminders'
       path: '/api/public/hooks/reminders'
@@ -371,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   TrustRoute: TrustRoute,
   ApiPublicHooksRemindersRoute: ApiPublicHooksRemindersRoute,
+  ApiPublicNotificationsTokenRoute: ApiPublicNotificationsTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
