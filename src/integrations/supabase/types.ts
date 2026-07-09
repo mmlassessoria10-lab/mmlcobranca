@@ -366,6 +366,112 @@ export type Database = {
           },
         ]
       }
+      notification_templates: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          subject?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notifications_sent: {
+        Row: {
+          body: string
+          contract_id: string | null
+          created_at: string
+          customer_id: string
+          fine_amount: number
+          id: string
+          interest_amount: number
+          original_amount: number
+          overdue_count: number
+          sent_at: string
+          sent_by: string | null
+          subject: string
+          template_id: string | null
+          updated_amount: number
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          contract_id?: string | null
+          created_at?: string
+          customer_id: string
+          fine_amount?: number
+          id?: string
+          interest_amount?: number
+          original_amount?: number
+          overdue_count?: number
+          sent_at?: string
+          sent_by?: string | null
+          subject?: string
+          template_id?: string | null
+          updated_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          contract_id?: string | null
+          created_at?: string
+          customer_id?: string
+          fine_amount?: number
+          id?: string
+          interest_amount?: number
+          original_amount?: number
+          overdue_count?: number
+          sent_at?: string
+          sent_by?: string | null
+          subject?: string
+          template_id?: string | null
+          updated_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_sent_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_sent_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_sent_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "notification_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
