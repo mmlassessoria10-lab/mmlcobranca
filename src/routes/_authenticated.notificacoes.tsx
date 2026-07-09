@@ -304,10 +304,16 @@ function NotificacoesPage() {
                             if (!phone) return toast.error("Cliente sem telefone cadastrado");
                             const num = phone.length <= 11 ? `55${phone}` : phone;
                             const link = `${window.location.origin}/n/${s.accept_token}`;
-                            const suffix = `\n\n———\n⚠️ *NOTIFICAÇÃO EXTRAJUDICIAL* — Trata-se de comunicação formal de cobrança. Aguardamos seu retorno com a *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\nAcesse o link abaixo para visualizar o documento na íntegra e realizar o aceite digital:\n${link}`;
-                            const txt = `*${s.subject || "Notificação Extrajudicial"}*\n\n${s.body ?? ""}${suffix}`;
-                            window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank");
-                            (supabase as any)
+                          // Mensagem enxuta para não estourar o limite do wa.me (~2000 chars) que gera "API bloqueada"
+                          const nome = s.customers?.name ?? "";
+                          const txt =
+                            `⚠️ *NOTIFICAÇÃO EXTRAJUDICIAL*\n\n` +
+                            (nome ? `Prezado(a) ${nome},\n\n` : "") +
+                            `Trata-se de comunicação formal de cobrança. Aguardamos seu retorno com *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\n` +
+                            `Acesse o documento na íntegra e realize o aceite digital:\n${link}`;
+                          // Abre imediatamente para preservar o gesto do usuário
+                          window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank", "noopener,noreferrer");
+                          void (supabase as any)
                               .from("notifications_sent")
                               .update({ sent_at: new Date().toISOString() })
                               .eq("id", s.id)
