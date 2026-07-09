@@ -14,6 +14,7 @@ import { Copy, MessageCircle } from "lucide-react";
 import { PIX_KEY, PIX_KEY_LABEL, copyPix } from "@/lib/pix";
 import { useState } from "react";
 import { toast } from "sonner";
+import { openWhatsAppComposer } from "@/lib/communication";
 
 const ROLES: AppRole[] = ["admin", "financeiro", "cobranca"];
 
@@ -62,24 +63,13 @@ function AdminPage() {
   function inviteUrl(token: string) {
     return `${window.location.origin}/auth?invite=${token}`;
   }
-  function waLink(token: string, phone: string, role: AppRole) {
-    const p = phone.replace(/\D/g, "");
-    const num = p.length === 11 ? "55" + p : p;
-    const msg =
-      `Olá! Você foi convidado para acessar o Photogenic como ${ROLE_LABELS[role]}. ` +
-      `Acesse o link para criar sua conta: ${inviteUrl(token)}`;
-    return `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
+  function inviteMessage(token: string, role: AppRole) {
+    return `Olá! Você foi convidado para acessar o Photogenic como ${ROLE_LABELS[role]}. Acesse o link para criar sua conta: ${inviteUrl(token)}`;
   }
 
   async function createInvite() {
     setCreating(true);
     const token = (crypto.randomUUID() + crypto.randomUUID()).replace(/-/g, "").slice(0, 40);
-    // Abre a janela do WhatsApp SINCRONAMENTE (antes de qualquer await),
-    // caso contrário o navegador bloqueia como popup.
-    let waWindow: Window | null = null;
-    if (invPhone.trim()) {
-      waWindow = window.open("about:blank", "_blank", "noopener");
-    }
     const { error } = await supabase.from("invites").insert({
       token,
       role: invRole,
@@ -88,17 +78,14 @@ function AdminPage() {
     });
     setCreating(false);
     if (error) {
-      waWindow?.close();
       return toast.error(error.message);
     }
     toast.success("Convite gerado");
     setInvNote("");
     qc.invalidateQueries({ queryKey: ["admin-invites"] });
-    if (waWindow) {
-      waWindow.location.href = waLink(token, invPhone, invRole);
-    } else if (invPhone.trim()) {
-      // fallback: navega na aba atual se o popup foi bloqueado
-      window.location.href = waLink(token, invPhone, invRole);
+    if (invPhone.trim()) {
+      openWhatsAppComposer(invPhone, inviteMessage(token, invRole));
+      toast.success("Mensagem copiada. Se o WhatsApp não abrir, cole no contato.");
     }
   }
 

@@ -13,6 +13,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Mail, Phone, Trash2, Pencil, Send } from "lucide-react";
 import { toast } from "sonner";
+import { openWhatsAppComposer } from "@/lib/communication";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({ meta: [{ title: "Clientes | Photogenic" }] }),
@@ -220,12 +221,8 @@ function ClientesPage() {
                 {accessFor.phone && (
                   <Button
                     onClick={() => {
-                      const phone = onlyDigits(accessFor.phone);
-                      const num = phone.startsWith("55") ? phone : `55${phone}`;
-                      window.open(
-                        `https://wa.me/${num}?text=${encodeURIComponent(accessMessage(accessFor))}`,
-                        "_blank",
-                      );
+                      openWhatsAppComposer(accessFor.phone, accessMessage(accessFor));
+                      toast.success("Mensagem copiada. Se o WhatsApp não abrir, cole no contato.");
                     }}
                   >
                     <Phone className="w-4 h-4 mr-2" /> Enviar por WhatsApp
