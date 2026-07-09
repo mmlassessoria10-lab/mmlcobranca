@@ -14,6 +14,7 @@ import {
   Receipt,
   Percent,
   Scale,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import photogenicLogo from "@/assets/photogenic-logo-v4.png.asset.json";
@@ -30,6 +31,7 @@ const nav: { to: string; label: string; icon: any; adminOnly?: boolean; hideForR
   { to: "/importar", label: "Importar Excel", icon: Upload, hideForRoles: ["cobranca"], hideForCliente: true },
   { to: "/comissoes", label: "Comissões", icon: Percent, hideForCliente: true },
   { to: "/juridico", label: "Depto Jurídico", icon: Scale, hideForCliente: true, hideForRoles: [] },
+  { to: "/notificacoes", label: "Notificações", icon: Mail, hideForCliente: true },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3, hideForCliente: true },
   { to: "/admin", label: "Administração", icon: Shield, adminOnly: true },
 ];
