@@ -14,6 +14,148 @@ export type Database = {
   }
   public: {
     Tables: {
+      agreement_templates: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          default_installments: number
+          has_entry: boolean
+          id: string
+          name: string
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          default_installments?: number
+          has_entry?: boolean
+          id?: string
+          name: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          default_installments?: number
+          has_entry?: boolean
+          id?: string
+          name?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      agreements: {
+        Row: {
+          accept_token: string
+          accepted_at: string | null
+          accepted_document: string | null
+          accepted_ip: string | null
+          accepted_name: string | null
+          accepted_user_agent: string | null
+          body: string
+          contract_id: string | null
+          created_at: string
+          customer_id: string
+          entry_amount: number
+          fine_amount: number
+          first_due_date: string | null
+          id: string
+          installment_amount: number
+          installments_count: number
+          interest_amount: number
+          original_amount: number
+          overdue_count: number
+          sent_by: string | null
+          subject: string | null
+          template_id: string | null
+          total_amount: number
+          updated_amount: number
+          updated_at: string
+        }
+        Insert: {
+          accept_token?: string
+          accepted_at?: string | null
+          accepted_document?: string | null
+          accepted_ip?: string | null
+          accepted_name?: string | null
+          accepted_user_agent?: string | null
+          body: string
+          contract_id?: string | null
+          created_at?: string
+          customer_id: string
+          entry_amount?: number
+          fine_amount?: number
+          first_due_date?: string | null
+          id?: string
+          installment_amount?: number
+          installments_count?: number
+          interest_amount?: number
+          original_amount?: number
+          overdue_count?: number
+          sent_by?: string | null
+          subject?: string | null
+          template_id?: string | null
+          total_amount?: number
+          updated_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          accept_token?: string
+          accepted_at?: string | null
+          accepted_document?: string | null
+          accepted_ip?: string | null
+          accepted_name?: string | null
+          accepted_user_agent?: string | null
+          body?: string
+          contract_id?: string | null
+          created_at?: string
+          customer_id?: string
+          entry_amount?: number
+          fine_amount?: number
+          first_due_date?: string | null
+          id?: string
+          installment_amount?: number
+          installments_count?: number
+          interest_amount?: number
+          original_amount?: number
+          overdue_count?: number
+          sent_by?: string | null
+          subject?: string | null
+          template_id?: string | null
+          total_amount?: number
+          updated_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agreements_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agreements_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agreements_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "agreement_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commissions: {
         Row: {
           amount: number
