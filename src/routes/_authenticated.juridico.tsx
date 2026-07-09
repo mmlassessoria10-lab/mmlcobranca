@@ -249,6 +249,45 @@ function JuridicoPage() {
         )}
       </header>
 
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-base flex items-center gap-2"><BarChart3 className="w-4 h-4" /> Relatórios do jurídico</CardTitle>
+          <Button size="sm" variant="outline" onClick={exportCsv} disabled={!cases?.length}>
+            <Download className="w-4 h-4 mr-1" /> Exportar CSV
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="rounded-md border p-3">
+              <p className="text-xs text-muted-foreground">Casos</p>
+              <p className="text-lg font-semibold">{report.total}</p>
+            </div>
+            <div className="rounded-md border p-3">
+              <p className="text-xs text-muted-foreground">Valor a receber</p>
+              <p className="text-lg font-semibold text-amber-600">{brl(report.aReceber)}</p>
+            </div>
+            <div className="rounded-md border p-3">
+              <p className="text-xs text-muted-foreground">Valor recebido</p>
+              <p className="text-lg font-semibold text-emerald-600">{brl(report.recebido)}</p>
+            </div>
+            <div className="rounded-md border p-3">
+              <p className="text-xs text-muted-foreground">Honorários</p>
+              <p className="text-lg font-semibold">{brl(report.honorarios)}</p>
+            </div>
+          </div>
+          {report.total > 0 && (
+            <div className="mt-4">
+              <p className="text-xs text-muted-foreground mb-2">Por etapa</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(report.byStage).map(([k, v]) => (
+                  <Badge key={k} variant="outline">{STAGE_LABEL[k] ?? k}: {v}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {canEdit && (
         <Card className="bg-muted/30">
           <CardContent className="pt-6 text-sm text-muted-foreground space-y-1">
