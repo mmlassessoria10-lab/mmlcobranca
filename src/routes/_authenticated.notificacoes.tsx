@@ -62,8 +62,15 @@ function openWhatsAppMessage(phone: string, message: string) {
   const digits = phone.replace(/\D/g, "");
   if (!digits) return false;
   const num = digits.length <= 11 ? `55${digits}` : digits;
-  const url = `https://web.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(message)}`;
-  window.open(url, "_blank", "noopener,noreferrer");
+  const url = `whatsapp://send?phone=${num}&text=${encodeURIComponent(message)}`;
+  void navigator.clipboard?.writeText(message).catch(() => undefined);
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
   return true;
 }
 
@@ -322,7 +329,7 @@ function NotificacoesPage() {
                               .update({ sent_at: new Date().toISOString() })
                               .eq("id", s.id)
                               .then(() => qc.invalidateQueries({ queryKey: ["notif-sent"] }));
-                            toast.success("Reenvio aberto no WhatsApp");
+                            toast.success("WhatsApp acionado. A mensagem também foi copiada.");
                           }}
                         >
                           <MessageCircle className="w-4 h-4 mr-1" /> Reenviar
