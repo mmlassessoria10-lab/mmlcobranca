@@ -89,7 +89,7 @@ function NotificacoesPage() {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("notifications_sent")
-        .select("*, customers(name,document), contracts(contract_number,description), notification_templates(name)")
+        .select("*, customers(name,document,email,phone), contracts(contract_number,description), notification_templates(name)")
         .order("sent_at", { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -275,7 +275,7 @@ function NotificacoesPage() {
             <Table>
               <TableHeader><TableRow>
                 <TableHead>Data</TableHead><TableHead>Cliente</TableHead><TableHead>Contrato</TableHead><TableHead>Modelo</TableHead>
-                <TableHead>Parc.</TableHead><TableHead>Original</TableHead><TableHead>Atualizado</TableHead><TableHead>Aceite</TableHead>
+                <TableHead>Parc.</TableHead><TableHead>Original</TableHead><TableHead>Atualizado</TableHead><TableHead>Aceite</TableHead><TableHead className="text-right">Ações</TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {sent.map((s: any) => (
@@ -292,6 +292,31 @@ function NotificacoesPage() {
                         <Badge className="bg-emerald-600 hover:bg-emerald-600">Aceito {fmtDate(s.accepted_at)}</Badge>
                       ) : s.accept_token ? (
                         <Button size="sm" variant="outline" onClick={() => { const u = `${window.location.origin}/n/${s.accept_token}`; navigator.clipboard.writeText(u); toast.success("Link copiado"); }}>Copiar link</Button>
+                      ) : "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {s.accept_token && !s.accepted_at ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const phone = (s.customers?.phone ?? "").replace(/\D/g, "");
+                            if (!phone) return toast.error("Cliente sem telefone cadastrado");
+                            const num = phone.length <= 11 ? `55${phone}` : phone;
+                            const link = `${window.location.origin}/n/${s.accept_token}`;
+                            const suffix = `\n\n———\n⚠️ *NOTIFICAÇÃO EXTRAJUDICIAL* — Trata-se de comunicação formal de cobrança. Aguardamos seu retorno com a *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\nAcesse o link abaixo para visualizar o documento na íntegra e realizar o aceite digital:\n${link}`;
+                            const txt = `*${s.subject || "Notificação Extrajudicial"}*\n\n${s.body ?? ""}${suffix}`;
+                            window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank");
+                            (supabase as any)
+                              .from("notifications_sent")
+                              .update({ sent_at: new Date().toISOString() })
+                              .eq("id", s.id)
+                              .then(() => qc.invalidateQueries({ queryKey: ["notif-sent"] }));
+                            toast.success("Reenvio aberto no WhatsApp");
+                          }}
+                        >
+                          <MessageCircle className="w-4 h-4 mr-1" /> Reenviar
+                        </Button>
                       ) : "—"}
                     </TableCell>
                   </TableRow>
