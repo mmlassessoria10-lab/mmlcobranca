@@ -73,6 +73,7 @@ function NotificacoesPage() {
   const [selTemplate, setSelTemplate] = useState<string>("");
   const [previewBody, setPreviewBody] = useState<string>("");
   const [previewSubject, setPreviewSubject] = useState<string>("");
+  const [lastSent, setLastSent] = useState<{ id: string; accept_token: string } | null>(null);
 
   const { data: templates } = useQuery({
     queryKey: ["notif-templates"],
@@ -190,7 +191,7 @@ function NotificacoesPage() {
 
   async function registerSent() {
     if (!selectedCustomer || !previewBody) return toast.error("Gere a prévia primeiro");
-    const { error } = await (supabase as any).from("notifications_sent").insert({
+    const { data, error } = await (supabase as any).from("notifications_sent").insert({
       customer_id: selectedCustomer.id,
       contract_id: selectedContract?.id ?? null,
       template_id: selectedTemplate?.id ?? null,
@@ -202,8 +203,9 @@ function NotificacoesPage() {
       interest_amount: overdue.interest,
       overdue_count: overdue.items.length,
       sent_by: user?.id,
-    });
+    }).select("id,accept_token").single();
     if (error) return toast.error(error.message);
+    setLastSent({ id: data.id, accept_token: data.accept_token });
     toast.success("Notificação registrada");
     qc.invalidateQueries({ queryKey: ["notif-sent"] });
   }
@@ -232,7 +234,7 @@ function NotificacoesPage() {
             <Button variant="outline" onClick={() => { setTplEdit(null); setTplForm({ name: "", subject: "", body: "" }); setTplOpen(true); }}>
               <Plus className="w-4 h-4 mr-2" /> Novo modelo
             </Button>
-            <Button onClick={() => { setGenOpen(true); setPreviewBody(""); setPreviewSubject(""); }}>
+            <Button onClick={() => { setGenOpen(true); setPreviewBody(""); setPreviewSubject(""); setLastSent(null); }}>
               <Send className="w-4 h-4 mr-2" /> Gerar notificação
             </Button>
           </div>
@@ -273,7 +275,7 @@ function NotificacoesPage() {
             <Table>
               <TableHeader><TableRow>
                 <TableHead>Data</TableHead><TableHead>Cliente</TableHead><TableHead>Contrato</TableHead><TableHead>Modelo</TableHead>
-                <TableHead>Parc.</TableHead><TableHead>Original</TableHead><TableHead>Atualizado</TableHead>
+                <TableHead>Parc.</TableHead><TableHead>Original</TableHead><TableHead>Atualizado</TableHead><TableHead>Aceite</TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {sent.map((s: any) => (
@@ -285,6 +287,13 @@ function NotificacoesPage() {
                     <TableCell>{s.overdue_count}</TableCell>
                     <TableCell>{brl(s.original_amount)}</TableCell>
                     <TableCell className="font-medium text-amber-600">{brl(s.updated_amount)}</TableCell>
+                    <TableCell>
+                      {s.accepted_at ? (
+                        <Badge className="bg-emerald-600 hover:bg-emerald-600">Aceito {fmtDate(s.accepted_at)}</Badge>
+                      ) : s.accept_token ? (
+                        <Button size="sm" variant="outline" onClick={() => { const u = `${window.location.origin}/n/${s.accept_token}`; navigator.clipboard.writeText(u); toast.success("Link copiado"); }}>Copiar link</Button>
+                      ) : "—"}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -374,7 +383,9 @@ function NotificacoesPage() {
                 const phone = (selectedCustomer?.phone ?? "").replace(/\D/g, "");
                 if (!phone) return toast.error("Cliente sem telefone cadastrado");
                 const num = phone.length <= 11 ? `55${phone}` : phone;
-                const txt = `*${previewSubject || "Notificação Extrajudicial"}*\n\n${previewBody}`;
+                const link = lastSent ? `${window.location.origin}/n/${lastSent.accept_token}` : null;
+                const suffix = link ? `\n\n———\nAcesse e aceite digitalmente:\n${link}` : `\n\n(Registre o envio antes para incluir o link de aceite)`;
+                const txt = `*${previewSubject || "Notificação Extrajudicial"}*\n\n${previewBody}${suffix}`;
                 window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank");
               }}
             >

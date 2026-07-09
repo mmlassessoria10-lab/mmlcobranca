@@ -398,6 +398,12 @@ export type Database = {
       }
       notifications_sent: {
         Row: {
+          accept_token: string | null
+          accepted_at: string | null
+          accepted_document: string | null
+          accepted_ip: string | null
+          accepted_name: string | null
+          accepted_user_agent: string | null
           body: string
           contract_id: string | null
           created_at: string
@@ -415,6 +421,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accept_token?: string | null
+          accepted_at?: string | null
+          accepted_document?: string | null
+          accepted_ip?: string | null
+          accepted_name?: string | null
+          accepted_user_agent?: string | null
           body: string
           contract_id?: string | null
           created_at?: string
@@ -432,6 +444,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accept_token?: string | null
+          accepted_at?: string | null
+          accepted_document?: string | null
+          accepted_ip?: string | null
+          accepted_name?: string | null
+          accepted_user_agent?: string | null
           body?: string
           contract_id?: string | null
           created_at?: string
