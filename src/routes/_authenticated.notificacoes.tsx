@@ -384,7 +384,9 @@ function NotificacoesPage() {
                 if (!phone) return toast.error("Cliente sem telefone cadastrado");
                 const num = phone.length <= 11 ? `55${phone}` : phone;
                 const link = lastSent ? `${window.location.origin}/n/${lastSent.accept_token}` : null;
-                const suffix = link ? `\n\n———\nAcesse e aceite digitalmente:\n${link}` : `\n\n(Registre o envio antes para incluir o link de aceite)`;
+                const suffix = link
+                  ? `\n\n———\n⚠️ *NOTIFICAÇÃO EXTRAJUDICIAL* — Trata-se de comunicação formal de cobrança. Aguardamos seu retorno com a *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\nAcesse o link abaixo para visualizar o documento na íntegra e realizar o aceite digital:\n${link}`
+                  : `\n\n(Registre o envio antes para incluir o link de aceite)`;
                 const txt = `*${previewSubject || "Notificação Extrajudicial"}*\n\n${previewBody}${suffix}`;
                 window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank");
               }}
