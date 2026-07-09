@@ -3,8 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { brl, fmtDate, installmentStatus } from "@/lib/format";
-import { Wallet, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { Wallet, CheckCircle2, Clock, AlertTriangle, Copy } from "lucide-react";
+import { PIX_KEY, PIX_KEY_LABEL, copyPix } from "@/lib/pix";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/minhas-parcelas")({
   head: () => ({ meta: [{ title: "Minhas Parcelas | Photogenic" }] }),
@@ -64,6 +67,27 @@ function MinhasParcelas() {
         <p className="text-sm text-muted-foreground">Acompanhe abaixo os seus parcelamentos.</p>
       </div>
 
+      <Card>
+        <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm">
+            <div className="font-semibold">Pagamento via PIX</div>
+            <div className="text-muted-foreground">
+              Chave ({PIX_KEY_LABEL}): <span className="font-mono">{PIX_KEY}</span>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              const ok = await copyPix();
+              ok ? toast.success("Chave PIX copiada") : toast.error("Não foi possível copiar");
+            }}
+          >
+            <Copy className="w-4 h-4 mr-2" /> Copiar chave PIX
+          </Button>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard icon={<Wallet className="w-4 h-4" />} label="Total" value={brl(total)} />
         <StatCard icon={<CheckCircle2 className="w-4 h-4 text-green-600" />} label="Pago" value={brl(pago)} />
@@ -103,7 +127,8 @@ function MinhasParcelas() {
                       <th className="py-2 pr-4">Vencimento</th>
                       <th className="py-2 pr-4">Valor</th>
                       <th className="py-2 pr-4">Status</th>
-                      <th className="py-2">Pago em</th>
+                      <th className="py-2 pr-4">Pago em</th>
+                      <th className="py-2">PIX</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -120,7 +145,27 @@ function MinhasParcelas() {
                             <td className="py-2 pr-4">
                               <Badge variant={s.variant}>{s.label}</Badge>
                             </td>
-                            <td className="py-2">{i.paid_at ? fmtDate(i.paid_at) : "—"}</td>
+                            <td className="py-2 pr-4">{i.paid_at ? fmtDate(i.paid_at) : "—"}</td>
+                            <td className="py-2">
+                              {i.paid_at ? (
+                                <span className="text-muted-foreground text-xs">—</span>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={async () => {
+                                    const ok = await copyPix();
+                                    ok
+                                      ? toast.success(`Chave PIX copiada • ${brl(i.amount)}`)
+                                      : toast.error("Não foi possível copiar");
+                                  }}
+                                  title={`Copiar chave PIX (${PIX_KEY})`}
+                                >
+                                  <Copy className="w-3 h-3 mr-1" /> Copiar PIX
+                                </Button>
+                              )}
+                            </td>
                           </tr>
                         );
                       })}

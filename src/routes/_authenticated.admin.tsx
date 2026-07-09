@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Copy, MessageCircle } from "lucide-react";
+import { PIX_KEY, PIX_KEY_LABEL, copyPix } from "@/lib/pix";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -132,6 +133,29 @@ function AdminPage() {
         <h1 className="text-3xl font-bold">Administração</h1>
         <p className="text-muted-foreground mt-1">Gerencie usuários e atribua papéis (Admin, Financeiro, Cobrança).</p>
       </header>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Chave PIX para recebimentos</CardTitle></CardHeader>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm">
+            <div className="text-muted-foreground">Tipo: {PIX_KEY_LABEL}</div>
+            <div className="font-mono text-base">{PIX_KEY}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Exibida aos clientes em "Minhas Parcelas" ao lado de cada parcela em aberto.
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              const ok = await copyPix();
+              ok ? toast.success("Chave PIX copiada") : toast.error("Não foi possível copiar");
+            }}
+          >
+            <Copy className="w-4 h-4 mr-2" /> Copiar chave PIX
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Usuários ({data?.length ?? 0})</CardTitle></CardHeader>
