@@ -300,6 +300,73 @@ function JuridicoPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Transferir contrato para o jurídico</DialogTitle>
+            <DialogDescription>Selecione o contrato e defina a etapa inicial. O contrato passará ao status Jurídico.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Buscar contrato (cliente, documento ou nº)</Label>
+              <Input placeholder="Digite para filtrar..." value={contractSearch} onChange={(e) => setContractSearch(e.target.value)} />
+            </div>
+            <div>
+              <Label>Contrato</Label>
+              <Select value={transfer.contract_id} onValueChange={(v) => setTransfer({ ...transfer, contract_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  {(eligible ?? [])
+                    .filter((c: any) => {
+                      const q = contractSearch.trim().toLowerCase();
+                      if (!q) return true;
+                      return (
+                        (c.customers?.name ?? "").toLowerCase().includes(q) ||
+                        (c.customers?.document ?? "").toLowerCase().includes(q) ||
+                        (c.contract_number ?? "").toLowerCase().includes(q) ||
+                        (c.description ?? "").toLowerCase().includes(q)
+                      );
+                    })
+                    .slice(0, 100)
+                    .map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.customers?.name} {c.contract_number ? `· Nº ${c.contract_number}` : ""} · {brl(c.total_amount)}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Etapa inicial</Label>
+              <Select value={transfer.stage} onValueChange={(v) => setTransfer({ ...transfer, stage: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(STAGE_LABEL).filter(([k]) => k !== "encerrado").map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Advogado responsável</Label>
+              <Input value={transfer.attorney_name} onChange={(e) => setTransfer({ ...transfer, attorney_name: e.target.value })} />
+            </div>
+            <div>
+              <Label>Honorários (R$)</Label>
+              <Input type="number" step="0.01" value={transfer.honorary_amount} onChange={(e) => setTransfer({ ...transfer, honorary_amount: e.target.value })} />
+            </div>
+            <div>
+              <Label>Observações</Label>
+              <Textarea value={transfer.notes} onChange={(e) => setTransfer({ ...transfer, notes: e.target.value })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setTransferOpen(false)}>Cancelar</Button>
+            <Button onClick={submitTransfer}><ArrowRightCircle className="w-4 h-4 mr-2" />Transferir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
