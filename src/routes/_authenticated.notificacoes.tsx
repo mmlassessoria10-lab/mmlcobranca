@@ -58,6 +58,15 @@ function renderTemplate(body: string, vars: Record<string, string>) {
   return body.replace(/\{\{\s*([\w_]+)\s*\}\}/g, (_m, k) => vars[k] ?? `{{${k}}}`);
 }
 
+function openWhatsAppMessage(phone: string, message: string) {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return false;
+  const num = digits.length <= 11 ? `55${digits}` : digits;
+  const url = `https://web.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(message)}`;
+  window.open(url, "_blank", "noopener,noreferrer");
+  return true;
+}
+
 function NotificacoesPage() {
   const qc = useQueryClient();
   const { user, isAdmin, hasRole } = useAuth();
@@ -300,20 +309,15 @@ function NotificacoesPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            const phone = (s.customers?.phone ?? "").replace(/\D/g, "");
-                            if (!phone) return toast.error("Cliente sem telefone cadastrado");
-                            const num = phone.length <= 11 ? `55${phone}` : phone;
                             const link = `${window.location.origin}/n/${s.accept_token}`;
-                          // Mensagem enxuta para não estourar o limite do wa.me (~2000 chars) que gera "API bloqueada"
-                          const nome = s.customers?.name ?? "";
-                          const txt =
-                            `⚠️ *NOTIFICAÇÃO EXTRAJUDICIAL*\n\n` +
-                            (nome ? `Prezado(a) ${nome},\n\n` : "") +
-                            `Trata-se de comunicação formal de cobrança. Aguardamos seu retorno com *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\n` +
-                            `Acesse o documento na íntegra e realize o aceite digital:\n${link}`;
-                          // Abre imediatamente para preservar o gesto do usuário
-                          window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank", "noopener,noreferrer");
-                          void (supabase as any)
+                            const nome = s.customers?.name ?? "";
+                            const txt =
+                              `⚠️ *NOTIFICAÇÃO EXTRAJUDICIAL*\n\n` +
+                              (nome ? `Prezado(a) ${nome},\n\n` : "") +
+                              `Trata-se de comunicação formal de cobrança. Aguardamos seu retorno com *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\n` +
+                              `Acesse o documento na íntegra e realize o aceite digital:\n${link}`;
+                            if (!openWhatsAppMessage(s.customers?.phone ?? "", txt)) return toast.error("Cliente sem telefone cadastrado");
+                            void (supabase as any)
                               .from("notifications_sent")
                               .update({ sent_at: new Date().toISOString() })
                               .eq("id", s.id)
@@ -411,15 +415,12 @@ function NotificacoesPage() {
               variant="outline"
               disabled={!previewBody || !selectedCustomer?.phone}
               onClick={() => {
-                const phone = (selectedCustomer?.phone ?? "").replace(/\D/g, "");
-                if (!phone) return toast.error("Cliente sem telefone cadastrado");
-                const num = phone.length <= 11 ? `55${phone}` : phone;
                 const link = lastSent ? `${window.location.origin}/n/${lastSent.accept_token}` : null;
                 const suffix = link
                   ? `\n\n———\n⚠️ *NOTIFICAÇÃO EXTRAJUDICIAL* — Trata-se de comunicação formal de cobrança. Aguardamos seu retorno com a *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\nAcesse o link abaixo para visualizar o documento na íntegra e realizar o aceite digital:\n${link}`
                   : `\n\n(Registre o envio antes para incluir o link de aceite)`;
                 const txt = `*${previewSubject || "Notificação Extrajudicial"}*\n\n${previewBody}${suffix}`;
-                window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank");
+                if (!openWhatsAppMessage(selectedCustomer?.phone ?? "", txt)) toast.error("Cliente sem telefone cadastrado");
               }}
             >
               <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
