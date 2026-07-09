@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { brl, fmtDate } from "@/lib/format";
-import { Scale, Plus, CheckCircle2, ExternalLink, ArrowRightCircle, Undo2, Trash2 } from "lucide-react";
+import { Scale, Plus, CheckCircle2, ExternalLink, ArrowRightCircle, Undo2, Trash2, Download, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 
@@ -47,7 +47,7 @@ function JuridicoPage() {
   const [openCase, setOpenCase] = useState<any | null>(null);
   const [newEvent, setNewEvent] = useState({ event_type: "contato", event_date: new Date().toISOString().slice(0, 10), description: "", amount: "" });
   const [transferOpen, setTransferOpen] = useState(false);
-  const [transfer, setTransfer] = useState({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", notes: "" });
+  const [transfer, setTransfer] = useState({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", honorary_rate: "20", notes: "" });
   const [contractSearch, setContractSearch] = useState("");
 
   const { data: eligible } = useQuery({
@@ -56,7 +56,7 @@ function JuridicoPage() {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("contracts")
-        .select("id,description,contract_number,total_amount,legal_status,customers(name,document)")
+        .select("id,description,contract_number,total_amount,legal_status,customers(name,document),installments(amount,paid_at)")
         .neq("legal_status", "juridico")
         .order("created_at", { ascending: false })
         .limit(500);
@@ -93,9 +93,69 @@ function JuridicoPage() {
   function totals(c: any) {
     const ins = c.contracts?.installments ?? [];
     const aberto = ins.filter((i: any) => !i.paid_at).reduce((a: number, i: any) => a + Number(i.amount), 0);
+    const pago = ins.filter((i: any) => i.paid_at).reduce((a: number, i: any) => a + Number(i.amount), 0);
     const today = new Date(); today.setHours(0,0,0,0);
     const atraso = ins.filter((i: any) => !i.paid_at && new Date(i.due_date + "T00:00:00") < today).length;
-    return { aberto, atraso };
+    return { aberto, pago, atraso };
+  }
+
+  const selectedContract = (eligible ?? []).find((c: any) => c.id === transfer.contract_id);
+  const selectedAberto = selectedContract
+    ? (selectedContract.installments ?? []).filter((i: any) => !i.paid_at).reduce((a: number, i: any) => a + Number(i.amount), 0)
+    : 0;
+
+  function applyRate(rate: string) {
+    const r = Number(rate.replace(",", "."));
+    if (!isNaN(r) && selectedAberto > 0) {
+      setTransfer((t) => ({ ...t, honorary_rate: rate, honorary_amount: (selectedAberto * r / 100).toFixed(2) }));
+    } else {
+      setTransfer((t) => ({ ...t, honorary_rate: rate }));
+    }
+  }
+
+  // ==== Reports aggregation ====
+  const report = (() => {
+    const list = cases ?? [];
+    const byStage: Record<string, number> = {};
+    let aReceber = 0, recebido = 0, honorarios = 0;
+    for (const c of list) {
+      byStage[c.stage] = (byStage[c.stage] ?? 0) + 1;
+      const t = totals(c);
+      aReceber += t.aberto;
+      recebido += t.pago;
+      honorarios += Number(c.honorary_amount ?? 0);
+    }
+    return { total: list.length, byStage, aReceber, recebido, honorarios };
+  })();
+
+  function exportCsv() {
+    const rows = [
+      ["Cliente","Documento","Contrato","Nº","Etapa","Advogado","Aberto em","Valor em aberto","Valor recebido","Honorários","Parcelas em atraso"],
+      ...(cases ?? []).map((c: any) => {
+        const t = totals(c);
+        return [
+          c.contracts?.customers?.name ?? "",
+          c.contracts?.customers?.document ?? "",
+          c.contracts?.description ?? "",
+          c.contracts?.contract_number ?? "",
+          STAGE_LABEL[c.stage] ?? c.stage,
+          c.attorney_name ?? "",
+          fmtDate(c.opened_at),
+          t.aberto.toFixed(2).replace(".",","),
+          t.pago.toFixed(2).replace(".",","),
+          Number(c.honorary_amount ?? 0).toFixed(2).replace(".",","),
+          String(t.atraso),
+        ];
+      }),
+    ];
+    const csv = rows.map((r) => r.map((v: string) => `"${String(v).replace(/"/g,'""')}"`).join(";")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `juridico-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function addEvent() {
@@ -143,7 +203,7 @@ function JuridicoPage() {
     if (e2) return toast.error(e2.message);
     toast.success("Contrato transferido para o jurídico");
     setTransferOpen(false);
-    setTransfer({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", notes: "" });
+    setTransfer({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", honorary_rate: "20", notes: "" });
     setContractSearch("");
     qc.invalidateQueries({ queryKey: ["legal-cases"] });
     qc.invalidateQueries({ queryKey: ["contracts-eligible-legal"] });
@@ -188,6 +248,45 @@ function JuridicoPage() {
           </Button>
         )}
       </header>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-base flex items-center gap-2"><BarChart3 className="w-4 h-4" /> Relatórios do jurídico</CardTitle>
+          <Button size="sm" variant="outline" onClick={exportCsv} disabled={!cases?.length}>
+            <Download className="w-4 h-4 mr-1" /> Exportar CSV
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="rounded-md border p-3">
+              <p className="text-xs text-muted-foreground">Casos</p>
+              <p className="text-lg font-semibold">{report.total}</p>
+            </div>
+            <div className="rounded-md border p-3">
+              <p className="text-xs text-muted-foreground">Valor a receber</p>
+              <p className="text-lg font-semibold text-amber-600">{brl(report.aReceber)}</p>
+            </div>
+            <div className="rounded-md border p-3">
+              <p className="text-xs text-muted-foreground">Valor recebido</p>
+              <p className="text-lg font-semibold text-emerald-600">{brl(report.recebido)}</p>
+            </div>
+            <div className="rounded-md border p-3">
+              <p className="text-xs text-muted-foreground">Honorários</p>
+              <p className="text-lg font-semibold">{brl(report.honorarios)}</p>
+            </div>
+          </div>
+          {report.total > 0 && (
+            <div className="mt-4">
+              <p className="text-xs text-muted-foreground mb-2">Por etapa</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(report.byStage).map(([k, v]) => (
+                  <Badge key={k} variant="outline">{STAGE_LABEL[k] ?? k}: {v}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {canEdit && (
         <Card className="bg-muted/30">
@@ -364,7 +463,12 @@ function JuridicoPage() {
             </div>
             <div>
               <Label>Contrato</Label>
-              <Select value={transfer.contract_id} onValueChange={(v) => setTransfer({ ...transfer, contract_id: v })}>
+              <Select value={transfer.contract_id} onValueChange={(v) => {
+                const c = (eligible ?? []).find((x: any) => x.id === v);
+                const aberto = c ? (c.installments ?? []).filter((i: any) => !i.paid_at).reduce((a: number, i: any) => a + Number(i.amount), 0) : 0;
+                const r = Number((transfer.honorary_rate || "0").replace(",", "."));
+                setTransfer({ ...transfer, contract_id: v, honorary_amount: aberto > 0 && r > 0 ? (aberto * r / 100).toFixed(2) : transfer.honorary_amount });
+              }}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {(eligible ?? [])
@@ -379,14 +483,23 @@ function JuridicoPage() {
                       );
                     })
                     .slice(0, 100)
-                    .map((c: any) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.customers?.name} {c.contract_number ? `· Nº ${c.contract_number}` : ""} · {brl(c.total_amount)}
-                      </SelectItem>
-                    ))}
+                    .map((c: any) => {
+                      const ab = (c.installments ?? []).filter((i: any) => !i.paid_at).reduce((a: number, i: any) => a + Number(i.amount), 0);
+                      return (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.customers?.name} {c.contract_number ? `· Nº ${c.contract_number}` : ""} · a receber {brl(ab)}
+                        </SelectItem>
+                      );
+                    })}
                 </SelectContent>
               </Select>
             </div>
+            {transfer.contract_id && (
+              <div className="rounded-md border p-3 bg-muted/30 text-sm">
+                <div className="flex justify-between"><span className="text-muted-foreground">Valor a receber (parcelas em aberto)</span><span className="font-semibold text-amber-600">{brl(selectedAberto)}</span></div>
+                <p className="text-xs text-muted-foreground mt-1">Somente parcelas não pagas são consideradas na base de honorários.</p>
+              </div>
+            )}
             <div>
               <Label>Etapa inicial</Label>
               <Select value={transfer.stage} onValueChange={(v) => setTransfer({ ...transfer, stage: v })}>
@@ -402,9 +515,15 @@ function JuridicoPage() {
               <Label>Advogado responsável</Label>
               <Input value={transfer.attorney_name} onChange={(e) => setTransfer({ ...transfer, attorney_name: e.target.value })} />
             </div>
-            <div>
-              <Label>Honorários (R$)</Label>
-              <Input type="number" step="0.01" value={transfer.honorary_amount} onChange={(e) => setTransfer({ ...transfer, honorary_amount: e.target.value })} />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label>% Honorários sobre a receber</Label>
+                <Input type="number" step="0.01" value={transfer.honorary_rate} onChange={(e) => applyRate(e.target.value)} />
+              </div>
+              <div>
+                <Label>Honorários (R$)</Label>
+                <Input type="number" step="0.01" value={transfer.honorary_amount} onChange={(e) => setTransfer({ ...transfer, honorary_amount: e.target.value })} />
+              </div>
             </div>
             <div>
               <Label>Observações</Label>
