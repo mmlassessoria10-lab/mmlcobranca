@@ -1,6 +1,7 @@
 export const PIX_KEY = "+5565992479161";
 export const PIX_KEY_LABEL = "Celular";
-export const PIX_MERCHANT_NAME = "PHOTOGENIC IMAGE";
+// Nome do recebedor (máx. 25 chars após sanitização — sem acentos/pontuação)
+export const PIX_MERCHANT_NAME = "PHOTOGENIC LUCILENE SILVA";
 export const PIX_MERCHANT_CITY = "CUIABA";
 
 export async function copyPix(): Promise<boolean> {
