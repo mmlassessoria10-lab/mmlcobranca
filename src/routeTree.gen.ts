@@ -24,6 +24,7 @@ import { Route as AuthenticatedContratosRouteImport } from './routes/_authentica
 import { Route as AuthenticatedComissoesRouteImport } from './routes/_authenticated.comissoes'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated.clientes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
+import { Route as AuthenticatedAcordosRouteImport } from './routes/_authenticated.acordos'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated.contratos.$id'
 import { Route as ApiPublicNotificationsTokenRouteImport } from './routes/api/public/notifications.$token'
 import { Route as ApiPublicHooksRemindersRouteImport } from './routes/api/public/hooks/reminders'
@@ -105,6 +106,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAcordosRoute = AuthenticatedAcordosRouteImport.update({
+  id: '/acordos',
+  path: '/acordos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedContratosIdRoute =
   AuthenticatedContratosIdRouteImport.update({
     id: '/$id',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
   '/trust': typeof TrustRoute
+  '/acordos': typeof AuthenticatedAcordosRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/comissoes': typeof AuthenticatedComissoesRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/trust': typeof TrustRoute
+  '/acordos': typeof AuthenticatedAcordosRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/comissoes': typeof AuthenticatedComissoesRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/trust': typeof TrustRoute
+  '/_authenticated/acordos': typeof AuthenticatedAcordosRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/comissoes': typeof AuthenticatedComissoesRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/trust'
+    | '/acordos'
     | '/admin'
     | '/clientes'
     | '/comissoes'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/trust'
+    | '/acordos'
     | '/admin'
     | '/clientes'
     | '/comissoes'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/trust'
+    | '/_authenticated/acordos'
     | '/_authenticated/admin'
     | '/_authenticated/clientes'
     | '/_authenticated/comissoes'
@@ -373,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/acordos': {
+      id: '/_authenticated/acordos'
+      path: '/acordos'
+      fullPath: '/acordos'
+      preLoaderRoute: typeof AuthenticatedAcordosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/contratos/$id': {
       id: '/_authenticated/contratos/$id'
       path: '/$id'
@@ -419,6 +438,7 @@ const AuthenticatedContratosRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAcordosRoute: typeof AuthenticatedAcordosRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedComissoesRoute: typeof AuthenticatedComissoesRoute
@@ -432,6 +452,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAcordosRoute: AuthenticatedAcordosRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedComissoesRoute: AuthenticatedComissoesRoute,
