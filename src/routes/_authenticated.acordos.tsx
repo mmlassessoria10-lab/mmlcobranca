@@ -55,6 +55,15 @@ function renderTemplate(body: string, vars: Record<string, string>) {
   return body.replace(/\{\{\s*([\w_]+)\s*\}\}/g, (_m, k) => vars[k] ?? `{{${k}}}`);
 }
 
+function openWhatsAppMessage(phone: string, message: string) {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return false;
+  const num = digits.length <= 11 ? `55${digits}` : digits;
+  const url = `https://web.whatsapp.com/send?phone=${num}&text=${encodeURIComponent(message)}`;
+  window.open(url, "_blank", "noopener,noreferrer");
+  return true;
+}
+
 function AcordosPage() {
   const qc = useQueryClient();
   const { user, isAdmin, hasRole } = useAuth();
@@ -383,15 +392,12 @@ function AcordosPage() {
               variant="outline"
               disabled={!previewBody || !selectedCustomer?.phone}
               onClick={() => {
-                const phone = (selectedCustomer?.phone ?? "").replace(/\D/g, "");
-                if (!phone) return toast.error("Cliente sem telefone cadastrado");
-                const num = phone.length <= 11 ? `55${phone}` : phone;
                 const link = lastSaved ? `${window.location.origin}/a/${lastSaved.accept_token}` : null;
                 const suffix = link
                   ? `\n\n———\n⚠️ *ACORDO EXTRAJUDICIAL* — Proposta formal de regularização do débito. Aguardamos seu retorno com a *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\nAcesse o link abaixo para visualizar as condições e realizar o aceite digital:\n${link}`
                   : `\n\n(Registre o acordo antes para incluir o link de aceite)`;
                 const txt = `*${previewSubject || "Acordo Extrajudicial"}*\n\n${previewBody}${suffix}`;
-                window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank");
+                if (!openWhatsAppMessage(selectedCustomer?.phone ?? "", txt)) toast.error("Cliente sem telefone cadastrado");
               }}
             >
               <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
