@@ -387,7 +387,9 @@ function AcordosPage() {
                 if (!phone) return toast.error("Cliente sem telefone cadastrado");
                 const num = phone.length <= 11 ? `55${phone}` : phone;
                 const link = lastSaved ? `${window.location.origin}/a/${lastSaved.accept_token}` : null;
-                const suffix = link ? `\n\n———\nAcesse e aceite o acordo digitalmente:\n${link}` : `\n\n(Registre o acordo antes para incluir o link de aceite)`;
+                const suffix = link
+                  ? `\n\n———\n⚠️ *ACORDO EXTRAJUDICIAL* — Proposta formal de regularização do débito. Aguardamos seu retorno com a *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\nAcesse o link abaixo para visualizar as condições e realizar o aceite digital:\n${link}`
+                  : `\n\n(Registre o acordo antes para incluir o link de aceite)`;
                 const txt = `*${previewSubject || "Acordo Extrajudicial"}*\n\n${previewBody}${suffix}`;
                 window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank");
               }}
