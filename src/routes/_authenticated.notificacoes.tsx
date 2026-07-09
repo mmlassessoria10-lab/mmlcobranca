@@ -234,7 +234,7 @@ function NotificacoesPage() {
             <Button variant="outline" onClick={() => { setTplEdit(null); setTplForm({ name: "", subject: "", body: "" }); setTplOpen(true); }}>
               <Plus className="w-4 h-4 mr-2" /> Novo modelo
             </Button>
-            <Button onClick={() => { setGenOpen(true); setPreviewBody(""); setPreviewSubject(""); }}>
+            <Button onClick={() => { setGenOpen(true); setPreviewBody(""); setPreviewSubject(""); setLastSent(null); }}>
               <Send className="w-4 h-4 mr-2" /> Gerar notificação
             </Button>
           </div>
@@ -376,7 +376,9 @@ function NotificacoesPage() {
                 const phone = (selectedCustomer?.phone ?? "").replace(/\D/g, "");
                 if (!phone) return toast.error("Cliente sem telefone cadastrado");
                 const num = phone.length <= 11 ? `55${phone}` : phone;
-                const txt = `*${previewSubject || "Notificação Extrajudicial"}*\n\n${previewBody}`;
+                const link = lastSent ? `${window.location.origin}/n/${lastSent.accept_token}` : null;
+                const suffix = link ? `\n\n———\nAcesse e aceite digitalmente:\n${link}` : `\n\n(Registre o envio antes para incluir o link de aceite)`;
+                const txt = `*${previewSubject || "Notificação Extrajudicial"}*\n\n${previewBody}${suffix}`;
                 window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank");
               }}
             >
