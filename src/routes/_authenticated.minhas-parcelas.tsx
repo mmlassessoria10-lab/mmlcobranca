@@ -29,6 +29,7 @@ function MinhasParcelas() {
       const { data: contracts } = await supabase
         .from("contracts")
         .select("id,description,total_amount,installments_count,first_due_date,status,created_at,installments(id,number,due_date,amount,status,paid_at)")
+        .neq("legal_status", "juridico")
         .order("created_at", { ascending: false });
       return { customer, contracts: contracts ?? [] };
     },

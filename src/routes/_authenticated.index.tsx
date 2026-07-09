@@ -18,8 +18,11 @@ function Dashboard() {
     queryKey: ["dashboard"],
     queryFn: async () => {
       const [{ data: installments }, { data: contracts }, { data: customers }] = await Promise.all([
-        supabase.from("installments").select("amount,status,due_date,paid_at"),
-        supabase.from("contracts").select("id,total_amount"),
+        supabase
+          .from("installments")
+          .select("amount,status,due_date,paid_at,contracts!inner(legal_status)")
+          .not("contracts.legal_status", "eq", "juridico"),
+        supabase.from("contracts").select("id,total_amount").neq("legal_status", "juridico"),
         supabase.from("customers").select("id"),
       ]);
       const today = new Date(); today.setHours(0,0,0,0);
@@ -46,7 +49,8 @@ function Dashboard() {
       const today = new Date().toISOString().slice(0, 10);
       const { data } = await supabase
         .from("installments")
-        .select("id,number,due_date,amount,contracts(id,description,customers(name))")
+        .select("id,number,due_date,amount,contracts!inner(id,description,legal_status,customers(name))")
+        .not("contracts.legal_status", "eq", "juridico")
         .is("paid_at", null)
         .lt("due_date", today)
         .order("due_date", { ascending: true })

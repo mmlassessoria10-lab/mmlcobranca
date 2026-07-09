@@ -57,6 +57,7 @@ function ContratosPage() {
       const { data } = await supabase
         .from("contracts")
         .select("*, customers(name), installments(amount,paid_at,due_date)")
+        .neq("legal_status", "juridico")
         .order("created_at", { ascending: false });
       return data ?? [];
     },

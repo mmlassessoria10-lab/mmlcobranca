@@ -27,8 +27,9 @@ export async function processReminders(
   const { data, error } = await supabase
     .from("installments")
     .select(
-      "id, number, due_date, amount, paid_at, last_reminder_sent_at, reminder_count, contracts(description, installments_count, customers(name, email, phone))",
+      "id, number, due_date, amount, paid_at, last_reminder_sent_at, reminder_count, contracts!inner(description, installments_count, legal_status, customers(name, email, phone))",
     )
+    .not("contracts.legal_status", "eq", "juridico")
     .is("paid_at", null)
     .or(`due_date.lt.${todayIso},due_date.eq.${previewIso}`);
 
