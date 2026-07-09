@@ -94,7 +94,7 @@ function RelatoriosPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("installments")
-        .select("id,number,due_date,amount,paid_at,contracts(id,description,customers(name))")
+        .select("id,number,due_date,amount,paid_at,contracts(id,description,contract_number,customers(name))")
         .order("due_date", { ascending: true });
       return data ?? [];
     },
@@ -113,7 +113,8 @@ function RelatoriosPage() {
     if (q) {
       const t = q.toLowerCase();
       if (!(r.contracts?.customers?.name?.toLowerCase().includes(t) ||
-            r.contracts?.description?.toLowerCase().includes(t))) return false;
+            r.contracts?.description?.toLowerCase().includes(t) ||
+            r.contracts?.contract_number?.toLowerCase().includes(t))) return false;
     }
     return true;
   });
@@ -131,11 +132,12 @@ function RelatoriosPage() {
   );
 
   function exportCsv() {
-    const header = ["Cliente", "Contrato", "Parcela", "Vencimento", "Valor", "Status"];
+    const header = ["Cliente", "Nº Contrato", "Contrato", "Parcela", "Vencimento", "Valor", "Status"];
     const lines = [header.join(";")];
     filtered.forEach((r: any) => {
       lines.push([
         r.contracts?.customers?.name ?? "",
+        r.contracts?.contract_number ?? "",
         r.contracts?.description ?? "",
         r.number,
         fmtDate(r.due_date),
@@ -166,7 +168,7 @@ function RelatoriosPage() {
 
       <Card><CardContent className="pt-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-2">
-          <Input placeholder="Buscar por cliente ou contrato..." value={q} onChange={(e) => setQ(e.target.value)} className="max-w-md" />
+          <Input placeholder="Buscar por cliente, nº ou contrato..." value={q} onChange={(e) => setQ(e.target.value)} className="max-w-md" />
           <Select value={status} onValueChange={(v: any) => setStatus(v)}>
             <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -187,6 +189,7 @@ function RelatoriosPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Cliente</TableHead>
+              <TableHead>Nº Contrato</TableHead>
               <TableHead>Contrato</TableHead>
               <TableHead>Parcela</TableHead>
               <TableHead>Vencimento</TableHead>
@@ -199,6 +202,7 @@ function RelatoriosPage() {
             {filtered.map((r: any) => (
               <TableRow key={r.id}>
                 <TableCell>{r.contracts?.customers?.name}</TableCell>
+                <TableCell className="text-muted-foreground">{r.contracts?.contract_number || "—"}</TableCell>
                 <TableCell>
                   <Link to="/contratos/$id" params={{ id: r.contracts.id }} className="hover:underline">
                     {r.contracts.description}
