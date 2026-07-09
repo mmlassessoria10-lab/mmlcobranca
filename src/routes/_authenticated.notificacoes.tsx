@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { brl, fmtDate } from "@/lib/format";
 import { Mail, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { buildLegalNoticeWhatsAppMessage, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
 
 export const Route = createFileRoute("/_authenticated/notificacoes")({
   head: () => ({ meta: [{ title: "Notificações Extrajudiciais | Photogenic" }] }),
@@ -56,22 +57,6 @@ function computeOverdue(installments: any[]) {
 
 function renderTemplate(body: string, vars: Record<string, string>) {
   return body.replace(/\{\{\s*([\w_]+)\s*\}\}/g, (_m, k) => vars[k] ?? `{{${k}}}`);
-}
-
-function openWhatsAppMessage(phone: string, message: string) {
-  const digits = phone.replace(/\D/g, "");
-  if (!digits) return false;
-  const num = digits.length <= 11 ? `55${digits}` : digits;
-  const url = `whatsapp://send?phone=${num}&text=${encodeURIComponent(message)}`;
-  void navigator.clipboard?.writeText(message).catch(() => undefined);
-  const link = document.createElement("a");
-  link.href = url;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  return true;
 }
 
 function NotificacoesPage() {
@@ -316,20 +301,15 @@ function NotificacoesPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            const link = `${window.location.origin}/n/${s.accept_token}`;
-                            const nome = s.customers?.name ?? "";
-                            const txt =
-                              `⚠️ *NOTIFICAÇÃO EXTRAJUDICIAL*\n\n` +
-                              (nome ? `Prezado(a) ${nome},\n\n` : "") +
-                              `Trata-se de comunicação formal de cobrança. Aguardamos seu retorno com *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\n` +
-                              `Acesse o documento na íntegra e realize o aceite digital:\n${link}`;
-                            if (!openWhatsAppMessage(s.customers?.phone ?? "", txt)) return toast.error("Cliente sem telefone cadastrado");
+                            const link = publicAcceptanceUrl("n", s.accept_token);
+                            const txt = buildLegalNoticeWhatsAppMessage({ customerName: s.customers?.name, link });
+                            if (!openWhatsAppComposer(s.customers?.phone ?? "", txt)) return toast.error("Cliente sem telefone cadastrado");
                             void (supabase as any)
                               .from("notifications_sent")
                               .update({ sent_at: new Date().toISOString() })
                               .eq("id", s.id)
                               .then(() => qc.invalidateQueries({ queryKey: ["notif-sent"] }));
-                            toast.success("WhatsApp acionado. A mensagem também foi copiada.");
+                            toast.success("Mensagem copiada. Se o WhatsApp não abrir, cole no contato do cliente.");
                           }}
                         >
                           <MessageCircle className="w-4 h-4 mr-1" /> Reenviar
@@ -422,12 +402,11 @@ function NotificacoesPage() {
               variant="outline"
               disabled={!previewBody || !selectedCustomer?.phone}
               onClick={() => {
-                const link = lastSent ? `${window.location.origin}/n/${lastSent.accept_token}` : null;
-                const suffix = link
-                  ? `\n\n———\n⚠️ *NOTIFICAÇÃO EXTRAJUDICIAL* — Trata-se de comunicação formal de cobrança. Aguardamos seu retorno com a *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\nAcesse o link abaixo para visualizar o documento na íntegra e realizar o aceite digital:\n${link}`
-                  : `\n\n(Registre o envio antes para incluir o link de aceite)`;
-                const txt = `*${previewSubject || "Notificação Extrajudicial"}*\n\n${previewBody}${suffix}`;
-                if (!openWhatsAppMessage(selectedCustomer?.phone ?? "", txt)) toast.error("Cliente sem telefone cadastrado");
+                if (!lastSent) return toast.error("Registre o envio antes para gerar o link de aceite");
+                const link = publicAcceptanceUrl("n", lastSent.accept_token);
+                const txt = buildLegalNoticeWhatsAppMessage({ customerName: selectedCustomer?.name, link });
+                if (!openWhatsAppComposer(selectedCustomer?.phone ?? "", txt)) return toast.error("Cliente sem telefone cadastrado");
+                toast.success("Mensagem copiada. Se o WhatsApp não abrir, cole no contato do cliente.");
               }}
             >
               <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp

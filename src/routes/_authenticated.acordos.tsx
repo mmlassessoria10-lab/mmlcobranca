@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { brl, fmtDate } from "@/lib/format";
 import { Handshake, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { buildAgreementWhatsAppMessage, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
 
 export const Route = createFileRoute("/_authenticated/acordos")({
   head: () => ({ meta: [{ title: "Acordos Extrajudiciais | Photogenic" }] }),
@@ -53,22 +54,6 @@ function computeOverdue(installments: any[]) {
 }
 function renderTemplate(body: string, vars: Record<string, string>) {
   return body.replace(/\{\{\s*([\w_]+)\s*\}\}/g, (_m, k) => vars[k] ?? `{{${k}}}`);
-}
-
-function openWhatsAppMessage(phone: string, message: string) {
-  const digits = phone.replace(/\D/g, "");
-  if (!digits) return false;
-  const num = digits.length <= 11 ? `55${digits}` : digits;
-  const url = `whatsapp://send?phone=${num}&text=${encodeURIComponent(message)}`;
-  void navigator.clipboard?.writeText(message).catch(() => undefined);
-  const link = document.createElement("a");
-  link.href = url;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  return true;
 }
 
 function AcordosPage() {
@@ -399,12 +384,11 @@ function AcordosPage() {
               variant="outline"
               disabled={!previewBody || !selectedCustomer?.phone}
               onClick={() => {
-                const link = lastSaved ? `${window.location.origin}/a/${lastSaved.accept_token}` : null;
-                const suffix = link
-                  ? `\n\n———\n⚠️ *ACORDO EXTRAJUDICIAL* — Proposta formal de regularização do débito. Aguardamos seu retorno com a *máxima prioridade* para evitar a adoção de medidas judiciais cabíveis.\n\nAcesse o link abaixo para visualizar as condições e realizar o aceite digital:\n${link}`
-                  : `\n\n(Registre o acordo antes para incluir o link de aceite)`;
-                const txt = `*${previewSubject || "Acordo Extrajudicial"}*\n\n${previewBody}${suffix}`;
-                if (!openWhatsAppMessage(selectedCustomer?.phone ?? "", txt)) toast.error("Cliente sem telefone cadastrado");
+                if (!lastSaved) return toast.error("Registre o acordo antes para gerar o link de aceite");
+                const link = publicAcceptanceUrl("a", lastSaved.accept_token);
+                const txt = buildAgreementWhatsAppMessage({ customerName: selectedCustomer?.name, link });
+                if (!openWhatsAppComposer(selectedCustomer?.phone ?? "", txt)) return toast.error("Cliente sem telefone cadastrado");
+                toast.success("Mensagem copiada. Se o WhatsApp não abrir, cole no contato do cliente.");
               }}
             >
               <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp

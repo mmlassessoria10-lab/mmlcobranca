@@ -15,6 +15,7 @@ import { brl, fmtDate, installmentStatus } from "@/lib/format";
 import { ArrowLeft, CheckCircle2, MessageCircle, Mail, Trash2, ArrowRightLeft, Scale } from "lucide-react";
 import { toast } from "sonner";
 import { sendInstallmentReminder } from "@/lib/email/send-reminder";
+import { buildInstallmentReminderWhatsAppMessage, openWhatsAppComposer } from "@/lib/communication";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
   head: () => ({ meta: [{ title: "Contrato | Photogenic" }] }),
@@ -156,14 +157,19 @@ function ContractDetail() {
     }
   }
 
-  function whatsappLink(inst: any) {
-    const phone = (data?.customers?.phone ?? "").replace(/\D/g, "");
+  function sendWhatsApp(inst: any) {
+    const phone = data?.customers?.phone ?? "";
     const st = installmentStatus(inst.due_date, inst.paid_at);
-    const msg =
-      `Olá ${data?.customers?.name}, lembrete sobre o contrato "${data?.description}": ` +
-      `parcela ${inst.number}/${data?.installments_count} no valor de ${brl(inst.amount)}, ` +
-      `vencimento ${fmtDate(inst.due_date)}${st.overdue ? ` (${st.daysLate} dias em atraso)` : ""}.`;
-    return `https://wa.me/${phone.length === 11 ? "55" + phone : phone}?text=${encodeURIComponent(msg)}`;
+    const msg = buildInstallmentReminderWhatsAppMessage({
+      customerName: data?.customers?.name,
+      contractDescription: data?.description,
+      installmentLabel: `${inst.number}/${data?.installments_count}`,
+      amount: brl(inst.amount),
+      dueDate: fmtDate(inst.due_date),
+      daysLate: st.overdue ? st.daysLate : undefined,
+    });
+    if (!openWhatsAppComposer(phone, msg)) return toast.error("Cliente sem telefone cadastrado");
+    toast.success("Mensagem copiada. Se o WhatsApp não abrir, cole no contato do cliente.");
   }
 
   async function removeContract() {
@@ -262,10 +268,8 @@ function ContractDetail() {
                             <Mail className="w-3.5 h-3.5 mr-1" />E-mail
                           </Button>
                           {data.customers.phone && (
-                            <Button size="sm" variant="outline" asChild>
-                              <a href={whatsappLink(i)} target="_blank" rel="noreferrer">
-                                <MessageCircle className="w-3.5 h-3.5 mr-1" />WhatsApp
-                              </a>
+                            <Button size="sm" variant="outline" onClick={() => sendWhatsApp(i)}>
+                              <MessageCircle className="w-3.5 h-3.5 mr-1" />WhatsApp
                             </Button>
                           )}
                         </>
