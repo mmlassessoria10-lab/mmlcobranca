@@ -463,7 +463,12 @@ function JuridicoPage() {
             </div>
             <div>
               <Label>Contrato</Label>
-              <Select value={transfer.contract_id} onValueChange={(v) => setTransfer({ ...transfer, contract_id: v })}>
+              <Select value={transfer.contract_id} onValueChange={(v) => {
+                const c = (eligible ?? []).find((x: any) => x.id === v);
+                const aberto = c ? (c.installments ?? []).filter((i: any) => !i.paid_at).reduce((a: number, i: any) => a + Number(i.amount), 0) : 0;
+                const r = Number((transfer.honorary_rate || "0").replace(",", "."));
+                setTransfer({ ...transfer, contract_id: v, honorary_amount: aberto > 0 && r > 0 ? (aberto * r / 100).toFixed(2) : transfer.honorary_amount });
+              }}>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {(eligible ?? [])
@@ -478,14 +483,23 @@ function JuridicoPage() {
                       );
                     })
                     .slice(0, 100)
-                    .map((c: any) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.customers?.name} {c.contract_number ? `· Nº ${c.contract_number}` : ""} · {brl(c.total_amount)}
-                      </SelectItem>
-                    ))}
+                    .map((c: any) => {
+                      const ab = (c.installments ?? []).filter((i: any) => !i.paid_at).reduce((a: number, i: any) => a + Number(i.amount), 0);
+                      return (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.customers?.name} {c.contract_number ? `· Nº ${c.contract_number}` : ""} · a receber {brl(ab)}
+                        </SelectItem>
+                      );
+                    })}
                 </SelectContent>
               </Select>
             </div>
+            {transfer.contract_id && (
+              <div className="rounded-md border p-3 bg-muted/30 text-sm">
+                <div className="flex justify-between"><span className="text-muted-foreground">Valor a receber (parcelas em aberto)</span><span className="font-semibold text-amber-600">{brl(selectedAberto)}</span></div>
+                <p className="text-xs text-muted-foreground mt-1">Somente parcelas não pagas são consideradas na base de honorários.</p>
+              </div>
+            )}
             <div>
               <Label>Etapa inicial</Label>
               <Select value={transfer.stage} onValueChange={(v) => setTransfer({ ...transfer, stage: v })}>
@@ -501,9 +515,15 @@ function JuridicoPage() {
               <Label>Advogado responsável</Label>
               <Input value={transfer.attorney_name} onChange={(e) => setTransfer({ ...transfer, attorney_name: e.target.value })} />
             </div>
-            <div>
-              <Label>Honorários (R$)</Label>
-              <Input type="number" step="0.01" value={transfer.honorary_amount} onChange={(e) => setTransfer({ ...transfer, honorary_amount: e.target.value })} />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label>% Honorários sobre a receber</Label>
+                <Input type="number" step="0.01" value={transfer.honorary_rate} onChange={(e) => applyRate(e.target.value)} />
+              </div>
+              <div>
+                <Label>Honorários (R$)</Label>
+                <Input type="number" step="0.01" value={transfer.honorary_amount} onChange={(e) => setTransfer({ ...transfer, honorary_amount: e.target.value })} />
+              </div>
             </div>
             <div>
               <Label>Observações</Label>
