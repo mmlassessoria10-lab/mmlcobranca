@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { brl, fmtDate } from "@/lib/format";
-import { Mail, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send } from "lucide-react";
+import { Mail, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/notificacoes")({
@@ -43,6 +43,10 @@ function computeOverdue(installments: any[]) {
       return { ...i, days, amount, fine, interest, updated };
     })
     .filter(Boolean) as any[];
+  items.sort((a, b) => {
+    const d = a.due_date.localeCompare(b.due_date);
+    return d !== 0 ? d : (a.number ?? 0) - (b.number ?? 0);
+  });
   const original = items.reduce((a, i) => a + i.amount, 0);
   const fine = items.reduce((a, i) => a + i.fine, 0);
   const interest = items.reduce((a, i) => a + i.interest, 0);
@@ -363,6 +367,19 @@ function NotificacoesPage() {
           <div className="flex gap-2 mt-3">
             <Button variant="outline" onClick={refreshPreview}><RefreshCw className="w-4 h-4 mr-2" /> Atualizar prévia</Button>
             <Button variant="outline" onClick={printPreview} disabled={!previewBody}><Printer className="w-4 h-4 mr-2" /> Imprimir / PDF</Button>
+            <Button
+              variant="outline"
+              disabled={!previewBody || !selectedCustomer?.phone}
+              onClick={() => {
+                const phone = (selectedCustomer?.phone ?? "").replace(/\D/g, "");
+                if (!phone) return toast.error("Cliente sem telefone cadastrado");
+                const num = phone.length <= 11 ? `55${phone}` : phone;
+                const txt = `*${previewSubject || "Notificação Extrajudicial"}*\n\n${previewBody}`;
+                window.open(`https://wa.me/${num}?text=${encodeURIComponent(txt)}`, "_blank");
+              }}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+            </Button>
             <Button onClick={registerSent} disabled={!previewBody}><Send className="w-4 h-4 mr-2" /> Registrar envio</Button>
           </div>
 
