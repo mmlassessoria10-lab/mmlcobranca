@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { brl, fmtDate } from "@/lib/format";
-import { AlertTriangle, CheckCircle2, Clock, DollarSign, FileText } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, DollarSign, FileText, Scale } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import photogenicLogo from "@/assets/photogenic-logo-v4.png.asset.json";
 
@@ -59,6 +59,25 @@ function Dashboard() {
     },
   });
 
+  const { data: juridico } = useQuery({
+    queryKey: ["dashboard-juridico"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contracts")
+        .select("id,installments(amount,paid_at)")
+        .eq("legal_status", "juridico");
+      let aReceber = 0, recebido = 0;
+      (data ?? []).forEach((c: any) => {
+        (c.installments ?? []).forEach((i: any) => {
+          const amt = Number(i.amount);
+          if (i.paid_at) recebido += amt;
+          else aReceber += amt;
+        });
+      });
+      return { qtd: data?.length ?? 0, aReceber, recebido };
+    },
+  });
+
   const kpis = [
     { label: "Total contratado", value: brl(data?.total ?? 0), icon: DollarSign, color: "text-primary" },
     { label: "Pago", value: brl(data?.pago ?? 0), icon: CheckCircle2, color: "text-emerald-600" },
@@ -109,6 +128,32 @@ function Dashboard() {
           <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Parcelas em atraso</CardTitle></CardHeader>
           <CardContent><p className="text-3xl font-bold text-destructive">{data?.qtdAtraso ?? 0}</p></CardContent>
         </Card>
+      </div>
+
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-2">
+          <Scale className="w-4 h-4" /> Departamento Jurídico
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">Contratos transferidos</p>
+              <p className="text-2xl font-bold mt-1">{juridico?.qtd ?? 0}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">Valor a receber</p>
+              <p className="text-2xl font-bold mt-1 text-amber-600">{brl(juridico?.aReceber ?? 0)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">Valor recebido</p>
+              <p className="text-2xl font-bold mt-1 text-emerald-600">{brl(juridico?.recebido ?? 0)}</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Card>
