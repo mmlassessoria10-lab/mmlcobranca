@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "92898da2-f942-4f11-bd1f-8bd0037ddc9b",
-  "project_id": "63958007-9f86-4076-8fb5-c213e9522e73",
-  "url": "/__l5e/assets-v1/92898da2-f942-4f11-bd1f-8bd0037ddc9b/photogenic-logo-3.jpg",
-  "r2_key": "a/v1/63958007-9f86-4076-8fb5-c213e9522e73/92898da2-f942-4f11-bd1f-8bd0037ddc9b/photogenic-logo-3.jpg",
-  "original_filename": "photogenic-logo-3.jpg",
-  "size": 67150,
   "content_type": "image/jpeg",
-  "created_at": "2026-07-08T15:39:09Z"
+  "created_at": "2026-07-08T15:39:09Z",
+  "original_filename": "photogenic-logo-3.jpg",
+  "project_id": "b4045528-a757-45b2-a0af-cad3fbeeb193",
+  "r2_key": "a/v1/b4045528-a757-45b2-a0af-cad3fbeeb193/92898da2-f942-4f11-bd1f-8bd0037ddc9b/photogenic-logo-3.jpg",
+  "size": 67150,
+  "url": "/__l5e/assets-v1/92898da2-f942-4f11-bd1f-8bd0037ddc9b/photogenic-logo-3.jpg",
+  "version": 1
 }
