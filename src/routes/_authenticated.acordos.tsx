@@ -17,6 +17,7 @@ import { brl, fmtDate } from "@/lib/format";
 import { Handshake, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { buildAgreementWhatsAppMessage, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
+import headerAsset from "@/assets/hemanoele-scarpin-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/acordos")({
   head: () => ({ meta: [{ title: "Acordos Extrajudiciais | Photogenic" }] }),
@@ -202,16 +203,29 @@ function AcordosPage() {
     qc.invalidateQueries({ queryKey: ["agreements-list"] });
   }
 
-  function printPreview() {
+  async function printPreview() {
     if (!previewBody) return toast.error("Gere a prévia primeiro");
+    let logoUrl = headerAsset.url;
+    try {
+      const { data } = await supabase.from("app_settings").select("value").eq("key", "agreement_logo").maybeSingle();
+      const u = (data?.value as any)?.url;
+      if (u) logoUrl = u;
+    } catch {}
     const w = window.open("", "_blank", "width=800,height=900");
     if (!w) return;
     w.document.write(`<html><head><title>${previewSubject || "Acordo"}</title>
-      <style>body{font-family:Georgia,serif;padding:40px;line-height:1.6;color:#111;max-width:720px;margin:0 auto;white-space:pre-wrap;}
-      h1{font-size:18px;text-transform:uppercase;text-align:center;margin-bottom:24px;}</style>
-      </head><body><h1>${previewSubject || "Acordo"}</h1><div>${previewBody.replace(/</g,"&lt;")}</div></body></html>`);
+      <style>body{font-family:Georgia,serif;padding:40px;line-height:1.6;color:#111;max-width:720px;margin:0 auto;}
+      .logo{display:flex;justify-content:center;margin-bottom:24px;}
+      .logo img{max-height:120px;width:auto;}
+      h1{font-size:18px;text-transform:uppercase;text-align:center;margin-bottom:24px;}
+      .body{white-space:pre-wrap;}</style>
+      </head><body>
+      <div class="logo"><img src="${logoUrl}" alt="Logo" /></div>
+      <h1>${previewSubject || "Acordo"}</h1>
+      <div class="body">${previewBody.replace(/</g,"&lt;")}</div>
+      </body></html>`);
     w.document.close();
-    setTimeout(() => w.print(), 300);
+    setTimeout(() => w.print(), 600);
   }
 
   function openTemplate(t: any) {
