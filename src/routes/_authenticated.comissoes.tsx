@@ -252,6 +252,8 @@ function CommissionsTab({ canEdit }: { canEdit: boolean }) {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (data ?? []).filter((c: any) => {
+      // Somente comissões de parcelas efetivamente recebidas (baixadas como recebida).
+      if (!c.installments?.paid_at) return false;
       if (vendorFilter !== "all" && c.vendor_id !== vendorFilter) return false;
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
       if (q) {
