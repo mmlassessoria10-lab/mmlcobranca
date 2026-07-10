@@ -17,7 +17,7 @@ import { brl, fmtDate } from "@/lib/format";
 import { Handshake, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { buildAgreementWhatsAppMessage, openEmailComposer, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
-import headerAsset from "@/assets/hemanoele-scarpin-logo.png.asset.json";
+import headerAsset from "@/assets/mml-logo.jpeg.asset.json";
 
 export const Route = createFileRoute("/_authenticated/acordos")({
   head: () => ({ meta: [{ title: "Acordos Extrajudiciais | Photogenic" }] }),

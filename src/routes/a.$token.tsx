@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, ShieldCheck, Loader2, Handshake, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import headerAsset from "@/assets/hemanoele-scarpin-logo.png.asset.json";
+import headerAsset from "@/assets/mml-logo.jpeg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/a/$token")({
@@ -116,7 +116,7 @@ function PublicAgreement() {
             <div className="flex justify-center mb-6">
               <img
                 src={logoUrl}
-                alt="Hemanoele Scarpin — Advogada"
+                alt="MML Assessoria & Cobrança"
                 className="max-h-28 w-auto"
               />
             </div>

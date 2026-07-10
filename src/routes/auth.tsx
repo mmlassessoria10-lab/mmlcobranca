@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Wallet } from "lucide-react";
-import photogenicLogo from "@/assets/photogenic-logo-v4.png.asset.json";
+import photogenicLogo from "@/assets/mml-logo.jpeg.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Entrar | Photogenic" }] }),
@@ -72,7 +72,7 @@ function AuthPage() {
         <div className="flex items-center justify-center mb-6">
           <img
             src={photogenicLogo.url}
-            alt="Photogenic Image"
+            alt="MML Assessoria & Cobrança"
             className="w-40 h-40 object-contain"
           />
         </div>

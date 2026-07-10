@@ -18,7 +18,7 @@ import {
   Handshake,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import photogenicLogo from "@/assets/photogenic-logo-v4.png.asset.json";
+import photogenicLogo from "@/assets/mml-logo.jpeg.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
@@ -71,7 +71,7 @@ function AuthedLayout() {
           <div className="flex flex-col items-center gap-2">
             <img
               src={photogenicLogo.url}
-              alt="Photogenic Image"
+              alt="MML Assessoria & Cobrança"
               className="w-44 h-44 object-contain"
             />
             <p className="text-xs text-slate-600 font-medium">Controle de parcelamento</p>
