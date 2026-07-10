@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, MessageCircle } from "lucide-react";
+import { Copy, MessageCircle, Upload, Trash2 } from "lucide-react";
 import { PIX_KEY, PIX_KEY_LABEL, copyPix } from "@/lib/pix";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -30,6 +30,52 @@ function AdminPage() {
   const [invPhone, setInvPhone] = useState("");
   const [invNote, setInvNote] = useState("");
   const [creating, setCreating] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  const { data: agreementLogo } = useQuery({
+    queryKey: ["setting", "agreement_logo"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value,updated_at")
+        .eq("key", "agreement_logo")
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  async function onLogoFile(file: File) {
+    if (!file.type.startsWith("image/")) return toast.error("Envie um arquivo de imagem (PNG, JPG).");
+    if (file.size > 500 * 1024) return toast.error("Imagem muito grande. Use até 500 KB (comprima se necessário).");
+    setUploadingLogo(true);
+    try {
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+      const { error } = await supabase.from("app_settings").upsert({
+        key: "agreement_logo",
+        value: { url: dataUrl, filename: file.name },
+      });
+      if (error) throw error;
+      toast.success("Logo atualizada");
+      qc.invalidateQueries({ queryKey: ["setting", "agreement_logo"] });
+    } catch (e: any) {
+      toast.error(e.message ?? "Falha ao enviar imagem");
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+
+  async function removeLogo() {
+    if (!confirm("Remover a logo atual? A imagem padrão voltará a ser exibida.")) return;
+    const { error } = await supabase.from("app_settings").delete().eq("key", "agreement_logo");
+    if (error) return toast.error(error.message);
+    toast.success("Logo removida");
+    qc.invalidateQueries({ queryKey: ["setting", "agreement_logo"] });
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -141,6 +187,55 @@ function AdminPage() {
           >
             <Copy className="w-4 h-4 mr-2" /> Copiar chave PIX
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Logo do Termo Extrajudicial</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Esta imagem aparece centralizada no topo da página pública do acordo enviado ao cliente. Use PNG com fundo transparente, até 500 KB.
+          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="rounded-md border bg-muted/30 p-3 min-w-[220px]">
+              {(agreementLogo?.value as any)?.url ? (
+                <img
+                  src={(agreementLogo?.value as any).url}
+                  alt="Logo atual"
+                  className="max-h-24 w-auto mx-auto"
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-6">Nenhuma logo enviada — usando a padrão do sistema.</p>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="logo-upload" className="cursor-pointer">
+                <div className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:opacity-90">
+                  <Upload className="w-4 h-4" />
+                  {uploadingLogo ? "Enviando..." : "Escolher imagem"}
+                </div>
+                <input
+                  id="logo-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploadingLogo}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void onLogoFile(f);
+                    e.target.value = "";
+                  }}
+                />
+              </Label>
+              {(agreementLogo?.value as any)?.url && (
+                <Button variant="outline" size="sm" onClick={removeLogo}>
+                  <Trash2 className="w-4 h-4 mr-2" /> Remover logo
+                </Button>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
