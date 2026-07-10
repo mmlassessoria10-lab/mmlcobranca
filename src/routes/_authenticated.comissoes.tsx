@@ -324,6 +324,14 @@ function CommissionsTab({ canEdit }: { canEdit: boolean }) {
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap items-end gap-3 mb-4">
+            <div className="min-w-64 flex-1">
+              <Label className="text-xs">Pesquisar</Label>
+              <Input
+                placeholder="Vendedor, cliente, contrato ou parcela..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
             <div className="min-w-48">
               <Label className="text-xs">Vendedor</Label>
               <Select value={vendorFilter} onValueChange={setVendorFilter}>
