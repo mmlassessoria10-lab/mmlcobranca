@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, ShieldCheck, Loader2, Handshake, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import headerAsset from "@/assets/hemanoele-scarpin-header.png.asset.json";
 
 export const Route = createFileRoute("/a/$token")({
   head: () => {
@@ -98,6 +99,13 @@ function PublicAgreement() {
             </p>
           </CardHeader>
           <CardContent>
+            <div className="flex justify-center mb-4">
+              <img
+                src={headerAsset.url}
+                alt="Hemanoele Scarpin — Advogada"
+                className="max-h-24 w-auto"
+              />
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
               <div className="rounded border p-2"><p className="text-xs text-muted-foreground">Débito atualizado</p><p className="font-semibold text-amber-600">{brl(data.updated_amount)}</p></div>
               <div className="rounded border p-2"><p className="text-xs text-muted-foreground">Entrada</p><p className="font-semibold">{brl(data.entry_amount)}</p></div>
