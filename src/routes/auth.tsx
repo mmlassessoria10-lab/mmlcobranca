@@ -11,7 +11,7 @@ import { Wallet } from "lucide-react";
 import photogenicLogo from "@/assets/mml-logo.jpeg.asset.json";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Entrar | Photogenic" }] }),
+  head: () => ({ meta: [{ title: "Entrar | Stillo Foto" }] }),
   component: AuthPage,
 });
 

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import photogenicLogo from "@/assets/mml-logo.jpeg.asset.json";
 
 export const Route = createFileRoute("/_authenticated/")({
-  head: () => ({ meta: [{ title: "Dashboard | Photogenic" }] }),
+  head: () => ({ meta: [{ title: "Dashboard | Stillo Foto" }] }),
   component: Dashboard,
 });
 

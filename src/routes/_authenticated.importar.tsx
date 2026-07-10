@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { generateInstallments } from "@/lib/installments";
 
 export const Route = createFileRoute("/_authenticated/importar")({
-  head: () => ({ meta: [{ title: "Importar Excel | Photogenic" }] }),
+  head: () => ({ meta: [{ title: "Importar Excel | Stillo Foto" }] }),
   component: ImportarPage,
 });
 

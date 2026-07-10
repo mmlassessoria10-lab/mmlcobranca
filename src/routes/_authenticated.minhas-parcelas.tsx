@@ -12,7 +12,7 @@ import { PixQrDialog } from "@/components/PixQrDialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/minhas-parcelas")({
-  head: () => ({ meta: [{ title: "Minhas Parcelas | Photogenic" }] }),
+  head: () => ({ meta: [{ title: "Minhas Parcelas | Stillo Foto" }] }),
   component: MinhasParcelas,
 });
 
