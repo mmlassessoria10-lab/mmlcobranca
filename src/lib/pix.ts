@@ -1,5 +1,5 @@
-export const PIX_KEY = "+5565992479161";
-export const PIX_KEY_LABEL = "Celular";
+export const PIX_KEY = "64fa539f-1473-4eed-99fa-90c7b1bd6a59";
+export const PIX_KEY_LABEL = "Aleatória";
 // Nome do recebedor (máx. 25 chars após sanitização — sem acentos/pontuação)
 export const PIX_MERCHANT_NAME = "PHOTOGENIC LUCILENE SILVA";
 export const PIX_MERCHANT_CITY = "CUIABA";
