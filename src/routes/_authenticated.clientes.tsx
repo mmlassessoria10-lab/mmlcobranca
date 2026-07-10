@@ -27,13 +27,18 @@ function ClientesPage() {
   const canDelete = isAdmin;
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [form, setForm] = useState({ name: "", document: "", email: "", phone: "", contract_number: "", notes: "" });
+  const emptyForm = {
+    name: "", document: "", email: "", phone: "", contract_number: "", notes: "",
+    address_street: "", address_number: "", address_complement: "",
+    address_neighborhood: "", address_city: "", address_state: "", address_zip: "",
+  };
+  const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [accessFor, setAccessFor] = useState<any | null>(null);
 
   function openNew() {
     setEditingId(null);
-    setForm({ name: "", document: "", email: "", phone: "", contract_number: "", notes: "" });
+    setForm(emptyForm);
     setOpen(true);
   }
   function openEdit(c: any) {
@@ -45,6 +50,13 @@ function ClientesPage() {
       phone: c.phone ?? "",
       contract_number: c.contract_number ?? "",
       notes: c.notes ?? "",
+      address_street: (c as any).address_street ?? "",
+      address_number: (c as any).address_number ?? "",
+      address_complement: (c as any).address_complement ?? "",
+      address_neighborhood: (c as any).address_neighborhood ?? "",
+      address_city: (c as any).address_city ?? "",
+      address_state: (c as any).address_state ?? "",
+      address_zip: (c as any).address_zip ?? "",
     });
     setOpen(true);
   }
@@ -67,6 +79,13 @@ function ClientesPage() {
       phone: form.phone || null,
       contract_number: form.contract_number?.trim() || null,
       notes: form.notes || null,
+      address_street: form.address_street?.trim() || null,
+      address_number: form.address_number?.trim() || null,
+      address_complement: form.address_complement?.trim() || null,
+      address_neighborhood: form.address_neighborhood?.trim() || null,
+      address_city: form.address_city?.trim() || null,
+      address_state: form.address_state?.trim().toUpperCase() || null,
+      address_zip: form.address_zip?.trim() || null,
     } as any;
     const { error } = editingId
       ? await supabase.from("customers").update(payload).eq("id", editingId)
@@ -75,7 +94,7 @@ function ClientesPage() {
     toast.success(editingId ? "Cliente atualizado" : "Cliente cadastrado");
     setOpen(false);
     setEditingId(null);
-    setForm({ name: "", document: "", email: "", phone: "", contract_number: "", notes: "" });
+    setForm(emptyForm);
     qc.invalidateQueries({ queryKey: ["customers"] });
   }
 
@@ -118,7 +137,7 @@ function ClientesPage() {
                 <DialogTitle>{editingId ? "Editar cliente" : "Novo cliente"}</DialogTitle>
                 <DialogDescription>Dados básicos do cliente.</DialogDescription>
               </DialogHeader>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
                 <div><Label>Nome *</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><Label>CPF/CNPJ</Label><Input value={form.document} onChange={(e) => setForm({ ...form, document: e.target.value })} /></div>
@@ -126,6 +145,22 @@ function ClientesPage() {
                 </div>
                 <div><Label>E-mail</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
                 <div><Label>Nº do contrato (auxiliar)</Label><Input value={form.contract_number} onChange={(e) => setForm({ ...form, contract_number: e.target.value })} placeholder="Ex: 2024-0123" /></div>
+                <div className="pt-2 border-t">
+                  <p className="text-sm font-semibold mb-2">Endereço</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-2"><Label>Logradouro</Label><Input value={form.address_street} onChange={(e) => setForm({ ...form, address_street: e.target.value })} placeholder="Rua, Av..." /></div>
+                    <div><Label>Número</Label><Input value={form.address_number} onChange={(e) => setForm({ ...form, address_number: e.target.value })} placeholder="123" /></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-3">
+                    <div><Label>Complemento</Label><Input value={form.address_complement} onChange={(e) => setForm({ ...form, address_complement: e.target.value })} placeholder="Apto, Sala..." /></div>
+                    <div><Label>Bairro</Label><Input value={form.address_neighborhood} onChange={(e) => setForm({ ...form, address_neighborhood: e.target.value })} /></div>
+                  </div>
+                  <div className="grid grid-cols-6 gap-3 mt-3">
+                    <div className="col-span-3"><Label>Cidade</Label><Input value={form.address_city} onChange={(e) => setForm({ ...form, address_city: e.target.value })} /></div>
+                    <div className="col-span-1"><Label>UF</Label><Input maxLength={2} value={form.address_state} onChange={(e) => setForm({ ...form, address_state: e.target.value.toUpperCase() })} placeholder="MT" /></div>
+                    <div className="col-span-2"><Label>CEP</Label><Input value={form.address_zip} onChange={(e) => setForm({ ...form, address_zip: e.target.value })} placeholder="78000-000" /></div>
+                  </div>
+                </div>
                 <div><Label>Observações</Label><Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
               </div>
               <DialogFooter><Button onClick={save}>{editingId ? "Atualizar" : "Salvar"}</Button></DialogFooter>
