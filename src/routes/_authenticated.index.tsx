@@ -90,7 +90,7 @@ function Dashboard() {
       <header className="flex items-center gap-4">
         <img
           src={photogenicLogo.url}
-          alt="Photogenic Image"
+          alt="MML Assessoria & Cobrança"
           className="w-48 h-48 object-contain shrink-0"
         />
         <div>

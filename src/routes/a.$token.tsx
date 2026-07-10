@@ -116,7 +116,7 @@ function PublicAgreement() {
             <div className="flex justify-center mb-6">
               <img
                 src={logoUrl}
-                alt="Hemanoele Scarpin — Advogada"
+                alt="MML Assessoria & Cobrança"
                 className="max-h-28 w-auto"
               />
             </div>

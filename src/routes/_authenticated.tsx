@@ -71,7 +71,7 @@ function AuthedLayout() {
           <div className="flex flex-col items-center gap-2">
             <img
               src={photogenicLogo.url}
-              alt="Photogenic Image"
+              alt="MML Assessoria & Cobrança"
               className="w-44 h-44 object-contain"
             />
             <p className="text-xs text-slate-600 font-medium">Controle de parcelamento</p>

@@ -72,7 +72,7 @@ function AuthPage() {
         <div className="flex items-center justify-center mb-6">
           <img
             src={photogenicLogo.url}
-            alt="Photogenic Image"
+            alt="MML Assessoria & Cobrança"
             className="w-40 h-40 object-contain"
           />
         </div>
