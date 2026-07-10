@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { brl, fmtDate, installmentStatus } from "@/lib/format";
 import { ArrowLeft, CheckCircle2, MessageCircle, Mail, Trash2, ArrowRightLeft, Scale } from "lucide-react";
 import { toast } from "sonner";
-import { sendInstallmentReminder } from "@/lib/email/send-reminder";
 import { buildInstallmentReminderWhatsAppMessage, openEmailComposer, openWhatsAppComposer } from "@/lib/communication";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
