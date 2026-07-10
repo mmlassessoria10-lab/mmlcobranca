@@ -20,7 +20,7 @@ import headerAsset from "@/assets/mml-logo.jpeg.asset.json";
 const ROLES: AppRole[] = ["admin", "financeiro", "cobranca"];
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Administração | Photogenic" }] }),
+  head: () => ({ meta: [{ title: "Administração | Stillo Foto" }] }),
   component: AdminPage,
 });
 
@@ -111,7 +111,7 @@ function AdminPage() {
     return `${window.location.origin}/auth?invite=${token}`;
   }
   function inviteMessage(token: string, role: AppRole) {
-    return `Olá! Você foi convidado para acessar o Photogenic como ${ROLE_LABELS[role]}. Acesse o link para criar sua conta: ${inviteUrl(token)}`;
+    return `Olá! Você foi convidado para acessar o Stillo Foto como ${ROLE_LABELS[role]}. Acesse o link para criar sua conta: ${inviteUrl(token)}`;
   }
 
   async function createInvite() {

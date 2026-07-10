@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { buildInstallmentReminderWhatsAppMessage, openEmailComposer, openWhatsAppComposer } from "@/lib/communication";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
-  head: () => ({ meta: [{ title: "Contrato | Photogenic" }] }),
+  head: () => ({ meta: [{ title: "Contrato | Stillo Foto" }] }),
   component: ContractDetail,
 });
 

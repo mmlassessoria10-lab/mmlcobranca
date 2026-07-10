@@ -20,7 +20,7 @@ import { buildAgreementWhatsAppMessage, openEmailComposer, openWhatsAppComposer,
 import headerAsset from "@/assets/mml-logo.jpeg.asset.json";
 
 export const Route = createFileRoute("/_authenticated/acordos")({
-  head: () => ({ meta: [{ title: "Acordos Extrajudiciais | Photogenic" }] }),
+  head: () => ({ meta: [{ title: "Acordos Extrajudiciais | Stillo Foto" }] }),
   component: AcordosPage,
 });
 

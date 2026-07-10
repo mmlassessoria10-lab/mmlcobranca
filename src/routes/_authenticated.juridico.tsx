@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/juridico")({
-  head: () => ({ meta: [{ title: "Departamento Jurídico | Photogenic" }] }),
+  head: () => ({ meta: [{ title: "Departamento Jurídico | Stillo Foto" }] }),
   component: JuridicoPage,
 });
 

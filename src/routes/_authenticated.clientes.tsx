@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { openWhatsAppComposer } from "@/lib/communication";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
-  head: () => ({ meta: [{ title: "Clientes | Photogenic" }] }),
+  head: () => ({ meta: [{ title: "Clientes | Stillo Foto" }] }),
   component: ClientesPage,
 });
 
@@ -114,7 +114,7 @@ function ClientesPage() {
   function accessMessage(c: any) {
     return (
       `Olá, ${c?.name ?? ""}!\n\n` +
-      `Você já pode acompanhar seus parcelamentos no Photogenic.\n\n` +
+      `Você já pode acompanhar seus parcelamentos no Stillo Foto.\n\n` +
       `1) Acesse: ${authUrl}\n` +
       `2) Clique em "Criar conta" usando este e-mail: ${c?.email ?? ""}\n` +
       `3) Defina uma senha e pronto — você verá suas parcelas em "Minhas Parcelas".`
@@ -267,7 +267,7 @@ function ClientesPage() {
                   <Button
                     variant="secondary"
                     onClick={() => {
-                      const subject = "Seu acesso ao Photogenic";
+                      const subject = "Seu acesso ao Stillo Foto";
                       window.location.href = `mailto:${accessFor.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(accessMessage(accessFor))}`;
                     }}
                   >

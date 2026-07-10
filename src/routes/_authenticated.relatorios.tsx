@@ -18,7 +18,7 @@ import { brl, fmtDate, installmentStatus } from "@/lib/format";
 import { Download, Send, CheckCircle2, Pencil, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
-  head: () => ({ meta: [{ title: "Relatórios | Photogenic" }] }),
+  head: () => ({ meta: [{ title: "Relatórios | Stillo Foto" }] }),
   component: RelatoriosPage,
 });
 

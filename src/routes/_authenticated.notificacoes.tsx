@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { buildLegalNoticeWhatsAppMessage, openEmailComposer, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
 
 export const Route = createFileRoute("/_authenticated/notificacoes")({
-  head: () => ({ meta: [{ title: "Notificações Extrajudiciais | Photogenic" }] }),
+  head: () => ({ meta: [{ title: "Notificações Extrajudiciais | Stillo Foto" }] }),
   component: NotificacoesPage,
 });
 
