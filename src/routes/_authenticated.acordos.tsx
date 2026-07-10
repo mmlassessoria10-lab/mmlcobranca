@@ -14,9 +14,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { brl, fmtDate } from "@/lib/format";
-import { Handshake, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle } from "lucide-react";
+import { Handshake, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
-import { buildAgreementWhatsAppMessage, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
+import { buildAgreementWhatsAppMessage, openEmailComposer, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
 import headerAsset from "@/assets/hemanoele-scarpin-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/acordos")({
@@ -93,9 +93,17 @@ function AcordosPage() {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("agreements")
-        .select("*, customers(name,document), contracts(contract_number,description), agreement_templates(name)")
+        .select("*, customers(name,document,email,phone), contracts(contract_number,description), agreement_templates(name)")
         .order("created_at", { ascending: false }).limit(200);
       if (error) throw error; return data ?? [];
+    },
+  });
+
+  const { data: logoSetting } = useQuery({
+    queryKey: ["setting", "agreement_logo"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings").select("value").eq("key", "agreement_logo").maybeSingle();
+      return data;
     },
   });
 
@@ -234,6 +242,24 @@ function AcordosPage() {
     if (!t.has_entry) setEntry("0");
   }
 
+  const agreementLogoUrl = (logoSetting?.value as any)?.url ?? headerAsset.url;
+
+  function sendAgreementWhatsApp(customer: any, token?: string | null) {
+    if (!token) return toast.error("Registre o acordo antes para gerar o link de aceite");
+    const link = publicAcceptanceUrl("a", token);
+    const txt = buildAgreementWhatsAppMessage({ customerName: customer?.name, link });
+    if (!openWhatsAppComposer(customer?.phone ?? "", txt)) return toast.error("Cliente sem telefone cadastrado");
+    toast.success("WhatsApp aberto e mensagem copiada.");
+  }
+
+  function sendAgreementEmail(customer: any, subject: string, token?: string | null) {
+    if (!token) return toast.error("Registre o acordo antes para gerar o link de aceite");
+    const link = publicAcceptanceUrl("a", token);
+    const body = buildAgreementWhatsAppMessage({ customerName: customer?.name, link });
+    if (!openEmailComposer(customer?.email, subject || "Acordo Extrajudicial", body)) return toast.error("Cliente sem e-mail cadastrado");
+    toast.success("E-mail aberto. Confirme o envio no seu aplicativo de e-mail.");
+  }
+
   return (
     <div className="space-y-6">
       <header className="flex items-start justify-between gap-4 flex-wrap">
@@ -287,7 +313,7 @@ function AcordosPage() {
             <Table>
               <TableHeader><TableRow>
                 <TableHead>Data</TableHead><TableHead>Cliente</TableHead><TableHead>Contrato</TableHead><TableHead>Modelo</TableHead>
-                <TableHead>Entrada</TableHead><TableHead>Parcelas</TableHead><TableHead>Total</TableHead><TableHead>Aceite</TableHead>
+                <TableHead>Entrada</TableHead><TableHead>Parcelas</TableHead><TableHead>Total</TableHead><TableHead>Aceite</TableHead><TableHead className="text-right">Ações</TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {agreements.map((a: any) => (
@@ -305,6 +331,18 @@ function AcordosPage() {
                       ) : (
                         <Button size="sm" variant="outline" onClick={() => { const u = `${window.location.origin}/a/${a.accept_token}`; navigator.clipboard.writeText(u); toast.success("Link copiado"); }}>Copiar link</Button>
                       )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {!a.accepted_at ? (
+                        <div className="flex justify-end gap-1">
+                          <Button size="sm" variant="outline" onClick={() => sendAgreementWhatsApp(a.customers, a.accept_token)}>
+                            <MessageCircle className="w-4 h-4 mr-1" /> WhatsApp
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => sendAgreementEmail(a.customers, a.subject, a.accept_token)}>
+                            <Mail className="w-4 h-4 mr-1" /> E-mail
+                          </Button>
+                        </div>
+                      ) : "—"}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -394,24 +432,20 @@ function AcordosPage() {
           <div className="flex gap-2 mt-3 flex-wrap">
             <Button variant="outline" onClick={refreshPreview}><RefreshCw className="w-4 h-4 mr-2" /> Atualizar prévia</Button>
             <Button variant="outline" onClick={printPreview} disabled={!previewBody}><Printer className="w-4 h-4 mr-2" /> Imprimir / PDF</Button>
-            <Button
-              variant="outline"
-              disabled={!previewBody || !selectedCustomer?.phone}
-              onClick={() => {
-                if (!lastSaved) return toast.error("Registre o acordo antes para gerar o link de aceite");
-                const link = publicAcceptanceUrl("a", lastSaved.accept_token);
-                const txt = buildAgreementWhatsAppMessage({ customerName: selectedCustomer?.name, link });
-                if (!openWhatsAppComposer(selectedCustomer?.phone ?? "", txt)) return toast.error("Cliente sem telefone cadastrado");
-                toast.success("Mensagem copiada. Se o WhatsApp não abrir, cole no contato do cliente.");
-              }}
-            >
+              <Button variant="outline" disabled={!previewBody} onClick={() => sendAgreementWhatsApp(selectedCustomer, lastSaved?.accept_token)}>
               <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
             </Button>
+              <Button variant="outline" disabled={!previewBody} onClick={() => sendAgreementEmail(selectedCustomer, previewSubject, lastSaved?.accept_token)}>
+                <Mail className="w-4 h-4 mr-2" /> E-mail
+              </Button>
             <Button onClick={registerAgreement} disabled={!previewBody}><Send className="w-4 h-4 mr-2" /> Registrar acordo</Button>
           </div>
 
           {previewBody && (
             <div className="mt-3">
+              <div className="mb-4 flex justify-center rounded border bg-muted/20 p-4">
+                <img src={agreementLogoUrl} alt="Logo do termo extrajudicial" className="max-h-28 w-auto" />
+              </div>
               <Label>Assunto</Label>
               <Input value={previewSubject} onChange={(e) => setPreviewSubject(e.target.value)} />
               <Label className="mt-2">Prévia (editável)</Label>
