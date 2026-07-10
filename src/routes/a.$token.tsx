@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, ShieldCheck, Loader2, Handshake, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import headerAsset from "@/assets/hemanoele-scarpin-logo.png.asset.json";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/a/$token")({
   head: () => {
@@ -45,6 +46,7 @@ function PublicAgreement() {
   const [name, setName] = useState("");
   const [doc, setDoc] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>(headerAsset.url);
 
   async function load() {
     setLoading(true);
@@ -55,6 +57,18 @@ function PublicAgreement() {
     } finally { setLoading(false); }
   }
   useEffect(() => { load(); }, [token]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "agreement_logo")
+        .maybeSingle();
+      const url = (data?.value as any)?.url;
+      if (url) setLogoUrl(url);
+    })();
+  }, []);
 
   async function accept() {
     if (name.trim().length < 3) return toast.error("Informe seu nome completo");
@@ -101,7 +115,7 @@ function PublicAgreement() {
           <CardContent>
             <div className="flex justify-center mb-6">
               <img
-                src={headerAsset.url}
+                src={logoUrl}
                 alt="Hemanoele Scarpin — Advogada"
                 className="max-h-28 w-auto"
               />
