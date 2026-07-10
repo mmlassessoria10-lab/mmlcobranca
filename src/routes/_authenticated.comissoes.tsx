@@ -227,6 +227,7 @@ function CommissionsTab({ canEdit }: { canEdit: boolean }) {
   const qc = useQueryClient();
   const [vendorFilter, setVendorFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "pendente" | "pago">("all");
+  const [search, setSearch] = useState("");
 
   const { data: vendors } = useQuery({
     queryKey: ["vendors"],
