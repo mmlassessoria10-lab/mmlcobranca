@@ -227,6 +227,7 @@ function CommissionsTab({ canEdit }: { canEdit: boolean }) {
   const qc = useQueryClient();
   const [vendorFilter, setVendorFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "pendente" | "pago">("all");
+  const [search, setSearch] = useState("");
 
   const { data: vendors } = useQuery({
     queryKey: ["vendors"],
@@ -249,12 +250,25 @@ function CommissionsTab({ canEdit }: { canEdit: boolean }) {
   });
 
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return (data ?? []).filter((c: any) => {
       if (vendorFilter !== "all" && c.vendor_id !== vendorFilter) return false;
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
+      if (q) {
+        const haystack = [
+          c.vendors?.name,
+          c.contracts?.customers?.name,
+          c.contracts?.description,
+          c.installments?.number != null ? `#${c.installments.number}` : "",
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
       return true;
     });
-  }, [data, vendorFilter, statusFilter]);
+  }, [data, vendorFilter, statusFilter, search]);
 
   const totals = useMemo(() => {
     let pendente = 0, pago = 0;
@@ -310,6 +324,14 @@ function CommissionsTab({ canEdit }: { canEdit: boolean }) {
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap items-end gap-3 mb-4">
+            <div className="min-w-64 flex-1">
+              <Label className="text-xs">Pesquisar</Label>
+              <Input
+                placeholder="Vendedor, cliente, contrato ou parcela..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
             <div className="min-w-48">
               <Label className="text-xs">Vendedor</Label>
               <Select value={vendorFilter} onValueChange={setVendorFilter}>
