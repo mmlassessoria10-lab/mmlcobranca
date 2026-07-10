@@ -15,6 +15,7 @@ import { PIX_KEY, PIX_KEY_LABEL, copyPix } from "@/lib/pix";
 import { useState } from "react";
 import { toast } from "sonner";
 import { openWhatsAppComposer } from "@/lib/communication";
+import headerAsset from "@/assets/hemanoele-scarpin-logo.png.asset.json";
 
 const ROLES: AppRole[] = ["admin", "financeiro", "cobranca"];
 
@@ -200,10 +201,10 @@ function AdminPage() {
           </p>
           <div className="flex flex-wrap items-center gap-4">
             <div className="rounded-md border bg-muted/30 p-3 min-w-[220px]">
-              {(agreementLogo?.value as any)?.url ? (
+              {(agreementLogo?.value as any)?.url || headerAsset.url ? (
                 <img
-                  src={(agreementLogo?.value as any).url}
-                  alt="Logo atual"
+                  src={(agreementLogo?.value as any)?.url ?? headerAsset.url}
+                  alt="Logo do termo extrajudicial"
                   className="max-h-24 w-auto mx-auto"
                 />
               ) : (

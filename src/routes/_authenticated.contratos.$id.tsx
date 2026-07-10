@@ -14,8 +14,7 @@ import { Label } from "@/components/ui/label";
 import { brl, fmtDate, installmentStatus } from "@/lib/format";
 import { ArrowLeft, CheckCircle2, MessageCircle, Mail, Trash2, ArrowRightLeft, Scale } from "lucide-react";
 import { toast } from "sonner";
-import { sendInstallmentReminder } from "@/lib/email/send-reminder";
-import { buildInstallmentReminderWhatsAppMessage, openWhatsAppComposer } from "@/lib/communication";
+import { buildInstallmentReminderWhatsAppMessage, openEmailComposer, openWhatsAppComposer } from "@/lib/communication";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
   head: () => ({ meta: [{ title: "Contrato | Photogenic" }] }),
@@ -134,27 +133,23 @@ function ContractDetail() {
 
   async function sendEmail(inst: any) {
     if (!data?.customers?.email) return toast.error("Cliente sem e-mail cadastrado");
-    const t = toast.loading("Enviando e-mail...");
-    try {
-      await sendInstallmentReminder({
-        installmentId: inst.id,
-        customerName: data.customers.name,
-        customerEmail: data.customers.email,
-        contractDescription: data.description,
-        installmentNumber: inst.number,
-        installmentsTotal: data.installments_count,
-        amount: Number(inst.amount),
-        dueDate: inst.due_date,
-      });
-      await supabase.from("installments").update({
-        last_reminder_sent_at: new Date().toISOString(),
-        reminder_count: (inst.reminder_count ?? 0) + 1,
-      }).eq("id", inst.id);
-      toast.success("E-mail enviado", { id: t });
-      qc.invalidateQueries({ queryKey: ["contract", id] });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Falha ao enviar", { id: t });
-    }
+    const st = installmentStatus(inst.due_date, inst.paid_at);
+    const msg = buildInstallmentReminderWhatsAppMessage({
+      customerName: data.customers.name,
+      contractDescription: data.description,
+      installmentLabel: `${inst.number}/${data.installments_count}`,
+      amount: brl(inst.amount),
+      dueDate: fmtDate(inst.due_date),
+      daysLate: st.overdue ? st.daysLate : undefined,
+    });
+    const subject = `Lembrete de parcela ${inst.number}/${data.installments_count} - ${data.description}`;
+    if (!openEmailComposer(data.customers.email, subject, msg)) return toast.error("Cliente sem e-mail cadastrado");
+    await supabase.from("installments").update({
+      last_reminder_sent_at: new Date().toISOString(),
+      reminder_count: (inst.reminder_count ?? 0) + 1,
+    }).eq("id", inst.id);
+    toast.success("E-mail aberto. Confirme o envio no seu aplicativo de e-mail.");
+    qc.invalidateQueries({ queryKey: ["contract", id] });
   }
 
   function sendWhatsApp(inst: any) {
@@ -267,11 +262,9 @@ function ContractDetail() {
                           <Button size="sm" variant="outline" onClick={() => sendEmail(i)}>
                             <Mail className="w-3.5 h-3.5 mr-1" />E-mail
                           </Button>
-                          {data.customers.phone && (
-                            <Button size="sm" variant="outline" onClick={() => sendWhatsApp(i)}>
-                              <MessageCircle className="w-3.5 h-3.5 mr-1" />WhatsApp
-                            </Button>
-                          )}
+                          <Button size="sm" variant="outline" onClick={() => sendWhatsApp(i)}>
+                            <MessageCircle className="w-3.5 h-3.5 mr-1" />WhatsApp
+                          </Button>
                         </>
                       )}
                       {canPay && (

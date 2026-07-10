@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { brl, fmtDate } from "@/lib/format";
 import { Mail, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
-import { buildLegalNoticeWhatsAppMessage, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
+import { buildLegalNoticeWhatsAppMessage, openEmailComposer, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
 
 export const Route = createFileRoute("/_authenticated/notificacoes")({
   head: () => ({ meta: [{ title: "Notificações Extrajudiciais | Photogenic" }] }),
@@ -211,6 +211,22 @@ function NotificacoesPage() {
     qc.invalidateQueries({ queryKey: ["notif-sent"] });
   }
 
+  function sendNoticeWhatsApp(customer: any, token?: string | null) {
+    if (!token) return toast.error("Registre o envio antes para gerar o link de aceite");
+    const link = publicAcceptanceUrl("n", token);
+    const txt = buildLegalNoticeWhatsAppMessage({ customerName: customer?.name, link });
+    if (!openWhatsAppComposer(customer?.phone ?? "", txt)) return toast.error("Cliente sem telefone cadastrado");
+    toast.success("WhatsApp aberto e mensagem copiada.");
+  }
+
+  function sendNoticeEmail(customer: any, subject: string, token?: string | null) {
+    if (!token) return toast.error("Registre o envio antes para gerar o link de aceite");
+    const link = publicAcceptanceUrl("n", token);
+    const body = buildLegalNoticeWhatsAppMessage({ customerName: customer?.name, link });
+    if (!openEmailComposer(customer?.email, subject || "Notificação Extrajudicial", body)) return toast.error("Cliente sem e-mail cadastrado");
+    toast.success("E-mail aberto. Confirme o envio no seu aplicativo de e-mail.");
+  }
+
   function printPreview() {
     if (!previewBody) return toast.error("Gere a prévia primeiro");
     const w = window.open("", "_blank", "width=800,height=900");
@@ -297,23 +313,25 @@ function NotificacoesPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       {s.accept_token && !s.accepted_at ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const link = publicAcceptanceUrl("n", s.accept_token);
-                            const txt = buildLegalNoticeWhatsAppMessage({ customerName: s.customers?.name, link });
-                            if (!openWhatsAppComposer(s.customers?.phone ?? "", txt)) return toast.error("Cliente sem telefone cadastrado");
-                            void (supabase as any)
-                              .from("notifications_sent")
-                              .update({ sent_at: new Date().toISOString() })
-                              .eq("id", s.id)
-                              .then(() => qc.invalidateQueries({ queryKey: ["notif-sent"] }));
-                            toast.success("Mensagem copiada. Se o WhatsApp não abrir, cole no contato do cliente.");
-                          }}
-                        >
-                          <MessageCircle className="w-4 h-4 mr-1" /> Reenviar
-                        </Button>
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              sendNoticeWhatsApp(s.customers, s.accept_token);
+                              void (supabase as any)
+                                .from("notifications_sent")
+                                .update({ sent_at: new Date().toISOString() })
+                                .eq("id", s.id)
+                                .then(() => qc.invalidateQueries({ queryKey: ["notif-sent"] }));
+                            }}
+                          >
+                            <MessageCircle className="w-4 h-4 mr-1" /> WhatsApp
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => sendNoticeEmail(s.customers, s.subject, s.accept_token)}>
+                            <Mail className="w-4 h-4 mr-1" /> E-mail
+                          </Button>
+                        </div>
                       ) : "—"}
                     </TableCell>
                   </TableRow>
@@ -395,21 +413,14 @@ function NotificacoesPage() {
             </Card>
           )}
 
-          <div className="flex gap-2 mt-3">
+          <div className="flex gap-2 mt-3 flex-wrap">
             <Button variant="outline" onClick={refreshPreview}><RefreshCw className="w-4 h-4 mr-2" /> Atualizar prévia</Button>
             <Button variant="outline" onClick={printPreview} disabled={!previewBody}><Printer className="w-4 h-4 mr-2" /> Imprimir / PDF</Button>
-            <Button
-              variant="outline"
-              disabled={!previewBody || !selectedCustomer?.phone}
-              onClick={() => {
-                if (!lastSent) return toast.error("Registre o envio antes para gerar o link de aceite");
-                const link = publicAcceptanceUrl("n", lastSent.accept_token);
-                const txt = buildLegalNoticeWhatsAppMessage({ customerName: selectedCustomer?.name, link });
-                if (!openWhatsAppComposer(selectedCustomer?.phone ?? "", txt)) return toast.error("Cliente sem telefone cadastrado");
-                toast.success("Mensagem copiada. Se o WhatsApp não abrir, cole no contato do cliente.");
-              }}
-            >
+            <Button variant="outline" disabled={!previewBody} onClick={() => sendNoticeWhatsApp(selectedCustomer, lastSent?.accept_token)}>
               <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+            </Button>
+            <Button variant="outline" disabled={!previewBody} onClick={() => sendNoticeEmail(selectedCustomer, previewSubject, lastSent?.accept_token)}>
+              <Mail className="w-4 h-4 mr-2" /> E-mail
             </Button>
             <Button onClick={registerSent} disabled={!previewBody}><Send className="w-4 h-4 mr-2" /> Registrar envio</Button>
           </div>

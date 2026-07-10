@@ -42,6 +42,16 @@ function withSignature(message: string) {
   return `${message.trim()}\n\nAtenciosamente,\n${LEGAL_CONTACT.name}\n${LEGAL_CONTACT.email}\n${LEGAL_CONTACT.phone}`;
 }
 
+export function openEmailComposer(email: string | null | undefined, subject: string, message: string) {
+  const recipient = (email ?? "").trim();
+  if (!recipient) return false;
+  const url = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+  if (typeof window !== "undefined") {
+    window.location.href = url;
+  }
+  return true;
+}
+
 export function publicAcceptanceUrl(path: "n" | "a", token: string) {
   return `${PUBLIC_APP_ORIGIN}/${path}/${token}`;
 }
@@ -92,7 +102,7 @@ export function openWhatsAppComposer(phone: string, message: string) {
 
   if (typeof document === "undefined") return true;
   const link = document.createElement("a");
-  link.href = `whatsapp://send?phone=${normalizedPhone}&text=${encodeURIComponent(message)}`;
+  link.href = `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
   link.target = "_blank";
   link.rel = "noopener noreferrer";
   document.body.appendChild(link);
