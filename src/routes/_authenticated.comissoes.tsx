@@ -250,12 +250,25 @@ function CommissionsTab({ canEdit }: { canEdit: boolean }) {
   });
 
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return (data ?? []).filter((c: any) => {
       if (vendorFilter !== "all" && c.vendor_id !== vendorFilter) return false;
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
+      if (q) {
+        const haystack = [
+          c.vendors?.name,
+          c.contracts?.customers?.name,
+          c.contracts?.description,
+          c.installments?.number != null ? `#${c.installments.number}` : "",
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
       return true;
     });
-  }, [data, vendorFilter, statusFilter]);
+  }, [data, vendorFilter, statusFilter, search]);
 
   const totals = useMemo(() => {
     let pendente = 0, pago = 0;
