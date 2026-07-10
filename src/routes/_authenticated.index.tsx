@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { brl, fmtDate } from "@/lib/format";
 import { AlertTriangle, CheckCircle2, Clock, DollarSign, FileText, Scale } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import photogenicLogo from "@/assets/photogenic-logo-v4.png.asset.json";
+import photogenicLogo from "@/assets/mml-logo.jpeg.asset.json";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({ meta: [{ title: "Dashboard | Photogenic" }] }),
