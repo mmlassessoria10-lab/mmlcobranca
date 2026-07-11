@@ -109,6 +109,7 @@ function Dashboard() {
                 <div>
                   <p className="text-sm text-muted-foreground">{k.label}</p>
                   <p className="text-2xl font-bold mt-1">{isLoading ? "—" : k.value}</p>
+                  <p className={`text-xs font-medium mt-1 ${k.color}`}>{isLoading ? "—" : `${k.pct} do total`}</p>
                 </div>
                 <k.icon className={`w-5 h-5 ${k.color}`} />
               </div>
