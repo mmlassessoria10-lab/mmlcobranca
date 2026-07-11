@@ -10,7 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import photogenicLogo from "@/assets/mml-logo.jpeg.asset.json";
+import photogenicLogo from "@/assets/dedubiani-logo.png.asset.json";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/500.css";

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, ShieldCheck, Loader2, Handshake, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import headerAsset from "@/assets/mml-logo.jpeg.asset.json";
+import headerAsset from "@/assets/dedubiani-logo.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/a/$token")({

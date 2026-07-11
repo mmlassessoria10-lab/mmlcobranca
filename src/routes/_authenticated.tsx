@@ -18,7 +18,7 @@ import {
   Handshake,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import photogenicLogo from "@/assets/mml-logo.jpeg.asset.json";
+import photogenicLogo from "@/assets/dedubiani-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,

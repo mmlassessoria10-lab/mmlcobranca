@@ -15,7 +15,7 @@ import { PIX_KEY, PIX_KEY_LABEL, copyPix } from "@/lib/pix";
 import { useState } from "react";
 import { toast } from "sonner";
 import { openWhatsAppComposer } from "@/lib/communication";
-import headerAsset from "@/assets/mml-logo.jpeg.asset.json";
+import headerAsset from "@/assets/dedubiani-logo.png.asset.json";
 
 const ROLES: AppRole[] = ["admin", "financeiro", "cobranca"];
 
