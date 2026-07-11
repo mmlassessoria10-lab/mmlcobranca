@@ -78,11 +78,15 @@ function Dashboard() {
     },
   });
 
+  const totalBase = data?.total ?? 0;
+  const pct = (v: number) => (totalBase > 0 ? `${((v / totalBase) * 100).toFixed(1)}%` : "—");
+  const juridicoTotal = (juridico?.aReceber ?? 0) + (juridico?.recebido ?? 0);
+  const juridicoPct = (v: number) => (juridicoTotal > 0 ? `${((v / juridicoTotal) * 100).toFixed(1)}%` : "—");
   const kpis = [
-    { label: "Total contratado", value: brl(data?.total ?? 0), icon: DollarSign, color: "text-primary" },
-    { label: "Pago", value: brl(data?.pago ?? 0), icon: CheckCircle2, color: "text-emerald-600" },
-    { label: "Em aberto", value: brl(data?.aberto ?? 0), icon: Clock, color: "text-amber-600" },
-    { label: "Em atraso", value: brl(data?.atrasado ?? 0), icon: AlertTriangle, color: "text-destructive" },
+    { label: "Total contratado", value: brl(data?.total ?? 0), pct: totalBase > 0 ? "100%" : "—", icon: DollarSign, color: "text-primary" },
+    { label: "Pago", value: brl(data?.pago ?? 0), pct: pct(data?.pago ?? 0), icon: CheckCircle2, color: "text-emerald-600" },
+    { label: "Em aberto", value: brl(data?.aberto ?? 0), pct: pct(data?.aberto ?? 0), icon: Clock, color: "text-amber-600" },
+    { label: "Em atraso", value: brl(data?.atrasado ?? 0), pct: pct(data?.atrasado ?? 0), icon: AlertTriangle, color: "text-destructive" },
   ];
 
   return (
@@ -107,6 +111,7 @@ function Dashboard() {
                 <div>
                   <p className="text-sm text-muted-foreground">{k.label}</p>
                   <p className="text-2xl font-bold mt-1">{isLoading ? "—" : k.value}</p>
+                  <p className={`text-xs font-medium mt-1 ${k.color}`}>{isLoading ? "—" : `${k.pct} do total`}</p>
                 </div>
                 <k.icon className={`w-5 h-5 ${k.color}`} />
               </div>
@@ -145,12 +150,14 @@ function Dashboard() {
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Valor a receber</p>
               <p className="text-2xl font-bold mt-1 text-amber-600">{brl(juridico?.aReceber ?? 0)}</p>
+              <p className="text-xs font-medium mt-1 text-amber-600">{juridicoPct(juridico?.aReceber ?? 0)} do total</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Valor recebido</p>
               <p className="text-2xl font-bold mt-1 text-emerald-600">{brl(juridico?.recebido ?? 0)}</p>
+              <p className="text-xs font-medium mt-1 text-emerald-600">{juridicoPct(juridico?.recebido ?? 0)} do total</p>
             </CardContent>
           </Card>
         </div>
