@@ -80,6 +80,8 @@ function Dashboard() {
 
   const totalBase = data?.total ?? 0;
   const pct = (v: number) => (totalBase > 0 ? `${((v / totalBase) * 100).toFixed(1)}%` : "—");
+  const juridicoTotal = (juridico?.aReceber ?? 0) + (juridico?.recebido ?? 0);
+  const juridicoPct = (v: number) => (juridicoTotal > 0 ? `${((v / juridicoTotal) * 100).toFixed(1)}%` : "—");
   const kpis = [
     { label: "Total contratado", value: brl(data?.total ?? 0), pct: totalBase > 0 ? "100%" : "—", icon: DollarSign, color: "text-primary" },
     { label: "Pago", value: brl(data?.pago ?? 0), pct: pct(data?.pago ?? 0), icon: CheckCircle2, color: "text-emerald-600" },
