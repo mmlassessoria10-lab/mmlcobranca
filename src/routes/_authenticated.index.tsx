@@ -148,12 +148,14 @@ function Dashboard() {
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Valor a receber</p>
               <p className="text-2xl font-bold mt-1 text-amber-600">{brl(juridico?.aReceber ?? 0)}</p>
+              <p className="text-xs font-medium mt-1 text-amber-600">{juridicoPct(juridico?.aReceber ?? 0)} do total</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Valor recebido</p>
               <p className="text-2xl font-bold mt-1 text-emerald-600">{brl(juridico?.recebido ?? 0)}</p>
+              <p className="text-xs font-medium mt-1 text-emerald-600">{juridicoPct(juridico?.recebido ?? 0)} do total</p>
             </CardContent>
           </Card>
         </div>
