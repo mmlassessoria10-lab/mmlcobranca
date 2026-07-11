@@ -96,8 +96,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Lovable App" },
       { name: "twitter:description", content: "Intelligent Installment Management: Track payments, send reminders, and import data with AI." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/TV6mjtFkbqfn0jdnjdCE2t5UrFS2/social-images/social-1783701529805-Logotipo_MML.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/TV6mjtFkbqfn0jdnjdCE2t5UrFS2/social-images/social-1783701529805-Logotipo_MML.webp" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/TV6mjtFkbqfn0jdnjdCE2t5UrFS2/social-images/social-1783794094313-LOGOTIPO_DEDUBIANI.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/TV6mjtFkbqfn0jdnjdCE2t5UrFS2/social-images/social-1783794094313-LOGOTIPO_DEDUBIANI.webp" },
     ],
     links: [
       {
