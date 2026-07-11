@@ -78,11 +78,13 @@ function Dashboard() {
     },
   });
 
+  const totalBase = data?.total ?? 0;
+  const pct = (v: number) => (totalBase > 0 ? `${((v / totalBase) * 100).toFixed(1)}%` : "—");
   const kpis = [
-    { label: "Total contratado", value: brl(data?.total ?? 0), icon: DollarSign, color: "text-primary" },
-    { label: "Pago", value: brl(data?.pago ?? 0), icon: CheckCircle2, color: "text-emerald-600" },
-    { label: "Em aberto", value: brl(data?.aberto ?? 0), icon: Clock, color: "text-amber-600" },
-    { label: "Em atraso", value: brl(data?.atrasado ?? 0), icon: AlertTriangle, color: "text-destructive" },
+    { label: "Total contratado", value: brl(data?.total ?? 0), pct: totalBase > 0 ? "100%" : "—", icon: DollarSign, color: "text-primary" },
+    { label: "Pago", value: brl(data?.pago ?? 0), pct: pct(data?.pago ?? 0), icon: CheckCircle2, color: "text-emerald-600" },
+    { label: "Em aberto", value: brl(data?.aberto ?? 0), pct: pct(data?.aberto ?? 0), icon: Clock, color: "text-amber-600" },
+    { label: "Em atraso", value: brl(data?.atrasado ?? 0), pct: pct(data?.atrasado ?? 0), icon: AlertTriangle, color: "text-destructive" },
   ];
 
   return (
