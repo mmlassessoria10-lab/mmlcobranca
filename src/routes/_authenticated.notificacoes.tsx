@@ -531,6 +531,104 @@ function NotificacoesPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Viewer for registered notifications */}
+      <Dialog open={!!viewItem} onOpenChange={(o) => !o && setViewItem(null)}>
+        <DialogContent className="max-w-3xl max-h-[92vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Conferência da notificação</DialogTitle>
+            <DialogDescription>
+              Revise os dados lançados antes de enviar ao cliente.
+            </DialogDescription>
+          </DialogHeader>
+          {viewItem && (
+            <div className="space-y-3">
+              <div className="grid md:grid-cols-2 gap-3 text-sm">
+                <div className="rounded border p-2">
+                  <p className="text-xs text-muted-foreground">Cliente</p>
+                  <p className="font-medium">{viewItem.customers?.name ?? "—"}</p>
+                  <p className="text-xs text-muted-foreground">{viewItem.customers?.document ?? ""}</p>
+                </div>
+                <div className="rounded border p-2">
+                  <p className="text-xs text-muted-foreground">Contato</p>
+                  <p className="text-sm">{viewItem.customers?.email ?? "—"}</p>
+                  <p className="text-xs text-muted-foreground">{viewItem.customers?.phone ?? ""}</p>
+                </div>
+                <div className="rounded border p-2">
+                  <p className="text-xs text-muted-foreground">Contrato</p>
+                  <p className="font-medium">{viewItem.contracts?.contract_number ? `Nº ${viewItem.contracts.contract_number}` : "—"}</p>
+                  <p className="text-xs text-muted-foreground">{viewItem.contracts?.description ?? ""}</p>
+                </div>
+                <div className="rounded border p-2">
+                  <p className="text-xs text-muted-foreground">Registrada em</p>
+                  <p className="font-medium">{fmtDate(viewItem.sent_at)}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="rounded border p-2"><p className="text-xs text-muted-foreground">Parcelas</p><p className="font-semibold">{viewItem.overdue_count}</p></div>
+                <div className="rounded border p-2"><p className="text-xs text-muted-foreground">Original</p><p className="font-semibold">{brl(viewItem.original_amount)}</p></div>
+                <div className="rounded border p-2"><p className="text-xs text-muted-foreground">Multa+Juros</p><p className="font-semibold">{brl(Number(viewItem.fine_amount) + Number(viewItem.interest_amount))}</p></div>
+                <div className="rounded border p-2"><p className="text-xs text-muted-foreground">Atualizado</p><p className="font-semibold text-amber-600">{brl(viewItem.updated_amount)}</p></div>
+              </div>
+              <div>
+                <Label className="text-xs">Assunto</Label>
+                <p className="text-sm font-medium border rounded p-2 bg-muted/30">{viewItem.subject || "—"}</p>
+              </div>
+              <div>
+                <Label className="text-xs">Corpo da notificação</Label>
+                <div className="whitespace-pre-wrap font-serif text-sm leading-relaxed border rounded p-4 bg-background max-h-[45vh] overflow-auto">
+                  {viewItem.body}
+                </div>
+              </div>
+              {viewItem.accepted_at && (
+                <div className="rounded border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm">
+                  <p className="font-semibold">Aceite registrado</p>
+                  <p className="text-muted-foreground">Por <b>{viewItem.accepted_name}</b> ({viewItem.accepted_document}) em {fmtDate(viewItem.accepted_at)}.</p>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2 pt-2 border-t">
+                <Button variant="outline" onClick={() => printItem(viewItem)}>
+                  <Printer className="w-4 h-4 mr-2" /> Imprimir / PDF
+                </Button>
+                {viewItem.accept_token && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const u = `${window.location.origin}/n/${viewItem.accept_token}`;
+                      navigator.clipboard.writeText(u);
+                      toast.success("Link de aceite copiado");
+                    }}
+                  >
+                    Copiar link de aceite
+                  </Button>
+                )}
+                {viewItem.accept_token && !viewItem.accepted_at && (
+                  <>
+                    <Button
+                      onClick={() => {
+                        sendNoticeWhatsApp(viewItem.customers, viewItem.accept_token);
+                        void (supabase as any)
+                          .from("notifications_sent")
+                          .update({ sent_at: new Date().toISOString() })
+                          .eq("id", viewItem.id)
+                          .then(() => qc.invalidateQueries({ queryKey: ["notif-sent"] }));
+                      }}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" /> Enviar WhatsApp
+                    </Button>
+                    <Button variant="outline" onClick={() => sendNoticeEmail(viewItem.customers, viewItem.subject, viewItem.accept_token)}>
+                      <Mail className="w-4 h-4 mr-2" /> Enviar E-mail
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewItem(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
