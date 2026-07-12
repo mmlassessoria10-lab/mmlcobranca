@@ -84,6 +84,29 @@ function NotificacoesPage() {
   const [tplOpen, setTplOpen] = useState(false);
   const [tplEdit, setTplEdit] = useState<any | null>(null);
   const [tplForm, setTplForm] = useState({ name: "", subject: "", body: "" });
+  const subjectRef = useRef<HTMLInputElement | null>(null);
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
+  const [lastFocus, setLastFocus] = useState<"subject" | "body">("body");
+
+  function insertVar(key: string) {
+    const token = `{{${key}}}`;
+    const target = lastFocus === "subject" ? subjectRef.current : bodyRef.current;
+    if (!target) {
+      setTplForm((f) => ({ ...f, body: (f.body ?? "") + token }));
+      return;
+    }
+    const start = target.selectionStart ?? target.value.length;
+    const end = target.selectionEnd ?? target.value.length;
+    const current = target.value;
+    const next = current.slice(0, start) + token + current.slice(end);
+    if (lastFocus === "subject") setTplForm((f) => ({ ...f, subject: next }));
+    else setTplForm((f) => ({ ...f, body: next }));
+    requestAnimationFrame(() => {
+      target.focus();
+      const pos = start + token.length;
+      try { target.setSelectionRange(pos, pos); } catch {}
+    });
+  }
 
   const [genOpen, setGenOpen] = useState(false);
   const [selCustomer, setSelCustomer] = useState<string>("");
