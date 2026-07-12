@@ -365,8 +365,12 @@ function NotificacoesPage() {
                       ) : "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      {s.accept_token && !s.accepted_at ? (
-                        <div className="flex justify-end gap-1">
+                      <div className="flex justify-end gap-1">
+                        <Button size="sm" variant="outline" onClick={() => setViewItem(s)}>
+                          <Eye className="w-4 h-4 mr-1" /> Visualizar
+                        </Button>
+                        {s.accept_token && !s.accepted_at && (
+                          <>
                           <Button
                             size="sm"
                             variant="outline"
@@ -384,8 +388,9 @@ function NotificacoesPage() {
                           <Button size="sm" variant="outline" onClick={() => sendNoticeEmail(s.customers, s.subject, s.accept_token)}>
                             <Mail className="w-4 h-4 mr-1" /> E-mail
                           </Button>
-                        </div>
-                      ) : "—"}
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
