@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { brl, fmtDate } from "@/lib/format";
 import { Mail, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle } from "lucide-react";
+import { Eye } from "lucide-react";
 import { toast } from "sonner";
 import { buildLegalNoticeWhatsAppMessage, openEmailComposer, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
 
@@ -114,6 +115,7 @@ function NotificacoesPage() {
   const [previewBody, setPreviewBody] = useState<string>("");
   const [previewSubject, setPreviewSubject] = useState<string>("");
   const [lastSent, setLastSent] = useState<{ id: string; accept_token: string } | null>(null);
+  const [viewItem, setViewItem] = useState<any | null>(null);
 
   const { data: templates } = useQuery({
     queryKey: ["notif-templates"],
@@ -274,6 +276,18 @@ function NotificacoesPage() {
       <style>body{font-family:Georgia,serif;padding:40px;line-height:1.6;color:#111;max-width:720px;margin:0 auto;white-space:pre-wrap;}
       h1{font-size:18px;text-transform:uppercase;text-align:center;margin-bottom:24px;}</style>
       </head><body><h1>${previewSubject || "Notificação"}</h1><div>${previewBody.replace(/</g,"&lt;")}</div></body></html>`);
+    w.document.close();
+    setTimeout(() => w.print(), 300);
+  }
+
+  function printItem(item: any) {
+    if (!item) return;
+    const w = window.open("", "_blank", "width=800,height=900");
+    if (!w) return;
+    w.document.write(`<html><head><title>${item.subject || "Notificação"}</title>
+      <style>body{font-family:Georgia,serif;padding:40px;line-height:1.6;color:#111;max-width:720px;margin:0 auto;white-space:pre-wrap;}
+      h1{font-size:18px;text-transform:uppercase;text-align:center;margin-bottom:24px;}</style>
+      </head><body><h1>${item.subject || "Notificação"}</h1><div>${(item.body ?? "").replace(/</g,"&lt;")}</div></body></html>`);
     w.document.close();
     setTimeout(() => w.print(), 300);
   }
