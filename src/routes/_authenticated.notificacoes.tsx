@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { brl, fmtDate } from "@/lib/format";
+import { brl, fmtDate, valorPorExtenso } from "@/lib/format";
 import { Mail, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle } from "lucide-react";
 import { Eye } from "lucide-react";
 import { toast } from "sonner";
@@ -30,6 +30,10 @@ const AVAILABLE_VARS: { key: string; label: string; example: string }[] = [
   { key: "multa", label: "Multa (2%)", example: "R$ 30,00" },
   { key: "juros", label: "Juros de mora", example: "R$ 15,30" },
   { key: "valor_atualizado", label: "Valor atualizado", example: "R$ 1.545,30" },
+  { key: "valor_original_extenso", label: "Valor original por extenso", example: "mil e quinhentos reais" },
+  { key: "valor_atualizado_extenso", label: "Valor atualizado por extenso", example: "mil quinhentos e quarenta e cinco reais e trinta centavos" },
+  { key: "multa_extenso", label: "Multa por extenso", example: "trinta reais" },
+  { key: "juros_extenso", label: "Juros por extenso", example: "quinze reais e trinta centavos" },
   { key: "tabela_parcelas", label: "Tabela de parcelas", example: "• Parcela 1 — venc..." },
   { key: "data_hoje", label: "Data de hoje", example: new Date().toLocaleDateString("pt-BR") },
 ];
@@ -194,6 +198,10 @@ function NotificacoesPage() {
       multa: brl(overdue.fine),
       juros: brl(overdue.interest),
       valor_atualizado: brl(overdue.updated),
+      valor_original_extenso: valorPorExtenso(overdue.original),
+      valor_atualizado_extenso: valorPorExtenso(overdue.updated),
+      multa_extenso: valorPorExtenso(overdue.fine),
+      juros_extenso: valorPorExtenso(overdue.interest),
       tabela_parcelas: tabela,
       data_hoje: new Date().toLocaleDateString("pt-BR"),
     } as Record<string, string>;
@@ -333,7 +341,7 @@ function NotificacoesPage() {
             </div>
           )}
           <p className="text-xs text-muted-foreground mt-3">
-            Variáveis disponíveis: <code>{"{{cliente_nome}}"}</code> <code>{"{{cliente_documento}}"}</code> <code>{"{{cliente_email}}"}</code> <code>{"{{cliente_telefone}}"}</code> <code>{"{{contrato_numero}}"}</code> <code>{"{{contrato_descricao}}"}</code> <code>{"{{parcelas_atrasadas}}"}</code> <code>{"{{valor_original}}"}</code> <code>{"{{multa}}"}</code> <code>{"{{juros}}"}</code> <code>{"{{valor_atualizado}}"}</code> <code>{"{{tabela_parcelas}}"}</code> <code>{"{{data_hoje}}"}</code>
+            Variáveis disponíveis: <code>{"{{cliente_nome}}"}</code> <code>{"{{cliente_documento}}"}</code> <code>{"{{cliente_email}}"}</code> <code>{"{{cliente_telefone}}"}</code> <code>{"{{contrato_numero}}"}</code> <code>{"{{contrato_descricao}}"}</code> <code>{"{{parcelas_atrasadas}}"}</code> <code>{"{{valor_original}}"}</code> <code>{"{{valor_original_extenso}}"}</code> <code>{"{{multa}}"}</code> <code>{"{{multa_extenso}}"}</code> <code>{"{{juros}}"}</code> <code>{"{{juros_extenso}}"}</code> <code>{"{{valor_atualizado}}"}</code> <code>{"{{valor_atualizado_extenso}}"}</code> <code>{"{{tabela_parcelas}}"}</code> <code>{"{{data_hoje}}"}</code>
           </p>
         </CardContent>
       </Card>
