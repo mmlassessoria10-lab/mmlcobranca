@@ -391,8 +391,46 @@ function NotificacoesPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div><Label>Nome</Label><Input value={tplForm.name} onChange={(e) => setTplForm({ ...tplForm, name: e.target.value })} /></div>
-            <div><Label>Assunto</Label><Input value={tplForm.subject} onChange={(e) => setTplForm({ ...tplForm, subject: e.target.value })} /></div>
-            <div><Label>Corpo</Label><Textarea rows={14} value={tplForm.body} onChange={(e) => setTplForm({ ...tplForm, body: e.target.value })} /></div>
+            <div>
+              <Label>Assunto</Label>
+              <Input
+                ref={subjectRef}
+                value={tplForm.subject}
+                onFocus={() => setLastFocus("subject")}
+                onChange={(e) => setTplForm({ ...tplForm, subject: e.target.value })}
+              />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <Label>Corpo</Label>
+                <span className="text-xs text-muted-foreground">Clique em uma variável para inseri-la onde o cursor estiver</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-2 rounded-md border p-2 bg-muted/30">
+                {AVAILABLE_VARS.map((v) => (
+                  <button
+                    key={v.key}
+                    type="button"
+                    title={`${v.label} · ex: ${v.example}`}
+                    onClick={() => insertVar(v.key)}
+                    className="text-xs px-2 py-1 rounded border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    <span className="font-mono">{`{{${v.key}}}`}</span>
+                    <span className="ml-1 text-muted-foreground">— {v.label}</span>
+                  </button>
+                ))}
+              </div>
+              <Textarea
+                ref={bodyRef}
+                rows={14}
+                value={tplForm.body}
+                onFocus={() => setLastFocus("body")}
+                onChange={(e) => setTplForm({ ...tplForm, body: e.target.value })}
+                className="font-mono text-xs"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                As variáveis serão substituídas automaticamente pelos dados do cliente e valores do contrato ao gerar a notificação.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setTplOpen(false)}>Cancelar</Button>
