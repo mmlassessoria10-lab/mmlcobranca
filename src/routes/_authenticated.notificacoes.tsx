@@ -16,6 +16,23 @@ import { brl, fmtDate } from "@/lib/format";
 import { Mail, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { buildLegalNoticeWhatsAppMessage, openEmailComposer, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
+import { useRef } from "react";
+
+const AVAILABLE_VARS: { key: string; label: string; example: string }[] = [
+  { key: "cliente_nome", label: "Nome do cliente", example: "João da Silva" },
+  { key: "cliente_documento", label: "CPF/CNPJ", example: "000.000.000-00" },
+  { key: "cliente_email", label: "E-mail", example: "cliente@email.com" },
+  { key: "cliente_telefone", label: "Telefone", example: "(11) 99999-9999" },
+  { key: "contrato_numero", label: "Nº do contrato", example: "C-0001" },
+  { key: "contrato_descricao", label: "Descrição do contrato", example: "Ensaio fotográfico" },
+  { key: "parcelas_atrasadas", label: "Qtd. parcelas atrasadas", example: "3" },
+  { key: "valor_original", label: "Valor original", example: "R$ 1.500,00" },
+  { key: "multa", label: "Multa (2%)", example: "R$ 30,00" },
+  { key: "juros", label: "Juros de mora", example: "R$ 15,30" },
+  { key: "valor_atualizado", label: "Valor atualizado", example: "R$ 1.545,30" },
+  { key: "tabela_parcelas", label: "Tabela de parcelas", example: "• Parcela 1 — venc..." },
+  { key: "data_hoje", label: "Data de hoje", example: new Date().toLocaleDateString("pt-BR") },
+];
 
 export const Route = createFileRoute("/_authenticated/notificacoes")({
   head: () => ({ meta: [{ title: "Notificações Extrajudiciais | Stillo Foto" }] }),
