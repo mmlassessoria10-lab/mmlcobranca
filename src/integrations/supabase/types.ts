@@ -769,6 +769,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      promote_overdue_contracts_to_legal: { Args: never; Returns: number }
       redeem_invite: {
         Args: { _token: string }
         Returns: Database["public"]["Enums"]["app_role"]
