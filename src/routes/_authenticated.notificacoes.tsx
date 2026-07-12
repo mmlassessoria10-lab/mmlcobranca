@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +16,22 @@ import { brl, fmtDate } from "@/lib/format";
 import { Mail, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { buildLegalNoticeWhatsAppMessage, openEmailComposer, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
+
+const AVAILABLE_VARS: { key: string; label: string; example: string }[] = [
+  { key: "cliente_nome", label: "Nome do cliente", example: "João da Silva" },
+  { key: "cliente_documento", label: "CPF/CNPJ", example: "000.000.000-00" },
+  { key: "cliente_email", label: "E-mail", example: "cliente@email.com" },
+  { key: "cliente_telefone", label: "Telefone", example: "(11) 99999-9999" },
+  { key: "contrato_numero", label: "Nº do contrato", example: "C-0001" },
+  { key: "contrato_descricao", label: "Descrição do contrato", example: "Ensaio fotográfico" },
+  { key: "parcelas_atrasadas", label: "Qtd. parcelas atrasadas", example: "3" },
+  { key: "valor_original", label: "Valor original", example: "R$ 1.500,00" },
+  { key: "multa", label: "Multa (2%)", example: "R$ 30,00" },
+  { key: "juros", label: "Juros de mora", example: "R$ 15,30" },
+  { key: "valor_atualizado", label: "Valor atualizado", example: "R$ 1.545,30" },
+  { key: "tabela_parcelas", label: "Tabela de parcelas", example: "• Parcela 1 — venc..." },
+  { key: "data_hoje", label: "Data de hoje", example: new Date().toLocaleDateString("pt-BR") },
+];
 
 export const Route = createFileRoute("/_authenticated/notificacoes")({
   head: () => ({ meta: [{ title: "Notificações Extrajudiciais | Stillo Foto" }] }),
@@ -67,6 +83,29 @@ function NotificacoesPage() {
   const [tplOpen, setTplOpen] = useState(false);
   const [tplEdit, setTplEdit] = useState<any | null>(null);
   const [tplForm, setTplForm] = useState({ name: "", subject: "", body: "" });
+  const subjectRef = useRef<HTMLInputElement | null>(null);
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
+  const [lastFocus, setLastFocus] = useState<"subject" | "body">("body");
+
+  function insertVar(key: string) {
+    const token = `{{${key}}}`;
+    const target = lastFocus === "subject" ? subjectRef.current : bodyRef.current;
+    if (!target) {
+      setTplForm((f) => ({ ...f, body: (f.body ?? "") + token }));
+      return;
+    }
+    const start = target.selectionStart ?? target.value.length;
+    const end = target.selectionEnd ?? target.value.length;
+    const current = target.value;
+    const next = current.slice(0, start) + token + current.slice(end);
+    if (lastFocus === "subject") setTplForm((f) => ({ ...f, subject: next }));
+    else setTplForm((f) => ({ ...f, body: next }));
+    requestAnimationFrame(() => {
+      target.focus();
+      const pos = start + token.length;
+      try { target.setSelectionRange(pos, pos); } catch {}
+    });
+  }
 
   const [genOpen, setGenOpen] = useState(false);
   const [selCustomer, setSelCustomer] = useState<string>("");
@@ -351,8 +390,46 @@ function NotificacoesPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div><Label>Nome</Label><Input value={tplForm.name} onChange={(e) => setTplForm({ ...tplForm, name: e.target.value })} /></div>
-            <div><Label>Assunto</Label><Input value={tplForm.subject} onChange={(e) => setTplForm({ ...tplForm, subject: e.target.value })} /></div>
-            <div><Label>Corpo</Label><Textarea rows={14} value={tplForm.body} onChange={(e) => setTplForm({ ...tplForm, body: e.target.value })} /></div>
+            <div>
+              <Label>Assunto</Label>
+              <Input
+                ref={subjectRef}
+                value={tplForm.subject}
+                onFocus={() => setLastFocus("subject")}
+                onChange={(e) => setTplForm({ ...tplForm, subject: e.target.value })}
+              />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <Label>Corpo</Label>
+                <span className="text-xs text-muted-foreground">Clique em uma variável para inseri-la onde o cursor estiver</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-2 rounded-md border p-2 bg-muted/30">
+                {AVAILABLE_VARS.map((v) => (
+                  <button
+                    key={v.key}
+                    type="button"
+                    title={`${v.label} · ex: ${v.example}`}
+                    onClick={() => insertVar(v.key)}
+                    className="text-xs px-2 py-1 rounded border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    <span className="font-mono">{`{{${v.key}}}`}</span>
+                    <span className="ml-1 text-muted-foreground">— {v.label}</span>
+                  </button>
+                ))}
+              </div>
+              <Textarea
+                ref={bodyRef}
+                rows={14}
+                value={tplForm.body}
+                onFocus={() => setLastFocus("body")}
+                onChange={(e) => setTplForm({ ...tplForm, body: e.target.value })}
+                className="font-mono text-xs"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                As variáveis serão substituídas automaticamente pelos dados do cliente e valores do contrato ao gerar a notificação.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setTplOpen(false)}>Cancelar</Button>
