@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.promote_overdue_contracts_to_legal() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.trg_check_overdue_to_legal() FROM PUBLIC, anon, authenticated;
