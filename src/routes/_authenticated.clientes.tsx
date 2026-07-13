@@ -36,6 +36,34 @@ function ClientesPage() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [accessFor, setAccessFor] = useState<any | null>(null);
+  const [cepLoading, setCepLoading] = useState(false);
+
+  async function lookupCep(rawCep: string) {
+    const digits = unmask(rawCep);
+    if (digits.length !== 8) return;
+    try {
+      setCepLoading(true);
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const j = await res.json();
+      if (j?.erro) {
+        toast.error("CEP não encontrado");
+        return;
+      }
+      setForm((f) => ({
+        ...f,
+        address_zip: digits,
+        address_street: f.address_street || j.logradouro || "",
+        address_neighborhood: f.address_neighborhood || j.bairro || "",
+        address_city: f.address_city || j.localidade || "",
+        address_state: f.address_state || (j.uf || "").toUpperCase(),
+        address_complement: f.address_complement || j.complemento || "",
+      }));
+    } catch {
+      toast.error("Falha ao consultar CEP");
+    } finally {
+      setCepLoading(false);
+    }
+  }
 
   function openNew() {
     setEditingId(null);
@@ -159,7 +187,20 @@ function ClientesPage() {
                   <div className="grid grid-cols-6 gap-3 mt-3">
                     <div className="col-span-3"><Label>Cidade</Label><Input value={form.address_city} onChange={(e) => setForm({ ...form, address_city: e.target.value })} /></div>
                     <div className="col-span-1"><Label>UF</Label><Input maxLength={2} value={form.address_state} onChange={(e) => setForm({ ...form, address_state: e.target.value.toUpperCase() })} placeholder="MT" /></div>
-                    <div className="col-span-2"><Label>CEP</Label><Input value={form.address_zip} onChange={(e) => setForm({ ...form, address_zip: e.target.value })} placeholder="78000-000" /></div>
+                    <div className="col-span-2">
+                      <Label>CEP {cepLoading && <span className="text-xs text-muted-foreground">(buscando...)</span>}</Label>
+                      <Input
+                        value={form.address_zip}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setForm({ ...form, address_zip: v });
+                          if (unmask(v).length === 8) lookupCep(v);
+                        }}
+                        onBlur={(e) => lookupCep(e.target.value)}
+                        placeholder="78000-000"
+                        inputMode="numeric"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div><Label>Observações</Label><Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
