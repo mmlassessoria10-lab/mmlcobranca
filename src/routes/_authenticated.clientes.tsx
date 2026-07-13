@@ -159,7 +159,7 @@ function ClientesPage() {
       if (old && old !== path) {
         await supabase.storage.from("customer-documents").remove([old]);
       }
-      const { error: updErr } = await supabase.from("customers").update({ [field]: path }).eq("id", customer.id);
+      const { error: updErr } = await supabase.from("customers").update({ [field]: path } as any).eq("id", customer.id);
       if (updErr) throw updErr;
       toast.success("Arquivo enviado");
       qc.invalidateQueries({ queryKey: ["customers"] });
@@ -178,7 +178,7 @@ function ClientesPage() {
     if (!confirm("Remover este arquivo?")) return;
     const { error: rmErr } = await supabase.storage.from("customer-documents").remove([path]);
     if (rmErr) return toast.error(rmErr.message);
-    const { error: updErr } = await supabase.from("customers").update({ [field]: null }).eq("id", customer.id);
+    const { error: updErr } = await supabase.from("customers").update({ [field]: null } as any).eq("id", customer.id);
     if (updErr) return toast.error(updErr.message);
     toast.success("Arquivo removido");
     qc.invalidateQueries({ queryKey: ["customers"] });
