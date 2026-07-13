@@ -11,7 +11,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Mail, Phone, Trash2, Pencil, Send } from "lucide-react";
+import { Plus, Mail, Phone, Trash2, Pencil, Send, Upload, FileText, X } from "lucide-react";
 import { toast } from "sonner";
 import { openWhatsAppComposer } from "@/lib/communication";
 import { maskDocument, maskPhone, unmask } from "@/lib/format";
@@ -37,6 +37,9 @@ function ClientesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [accessFor, setAccessFor] = useState<any | null>(null);
   const [cepLoading, setCepLoading] = useState(false);
+  const [docsFor, setDocsFor] = useState<any | null>(null);
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [docsRefreshKey, setDocsRefreshKey] = useState(0);
 
   async function lookupCep(rawCep: string) {
     const digits = unmask(rawCep);
@@ -133,6 +136,59 @@ function ClientesPage() {
     if (error) return toast.error(error.message);
     toast.success("Cliente removido");
     qc.invalidateQueries({ queryKey: ["customers"] });
+  }
+
+  const DOC_FIELDS: { key: "cnh_path" | "rg_front_path" | "rg_back_path" | "residence_proof_path"; label: string }[] = [
+    { key: "cnh_path", label: "CNH" },
+    { key: "rg_front_path", label: "RG (frente)" },
+    { key: "rg_back_path", label: "RG (verso)" },
+    { key: "residence_proof_path", label: "Comprovante de residência" },
+  ];
+
+  async function uploadDoc(customer: any, field: string, file: File) {
+    setUploadingKey(field);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
+      const path = `${customer.id}/${field}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("customer-documents")
+        .upload(path, file, { upsert: true, contentType: file.type || undefined });
+      if (upErr) throw upErr;
+      // remove antigo se existir
+      const old = customer[field];
+      if (old && old !== path) {
+        await supabase.storage.from("customer-documents").remove([old]);
+      }
+      const { error: updErr } = await supabase.from("customers").update({ [field]: path }).eq("id", customer.id);
+      if (updErr) throw updErr;
+      toast.success("Arquivo enviado");
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      setDocsFor((prev: any) => (prev ? { ...prev, [field]: path } : prev));
+      setDocsRefreshKey((k) => k + 1);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao enviar arquivo");
+    } finally {
+      setUploadingKey(null);
+    }
+  }
+
+  async function removeDoc(customer: any, field: string) {
+    const path = customer[field];
+    if (!path) return;
+    if (!confirm("Remover este arquivo?")) return;
+    const { error: rmErr } = await supabase.storage.from("customer-documents").remove([path]);
+    if (rmErr) return toast.error(rmErr.message);
+    const { error: updErr } = await supabase.from("customers").update({ [field]: null }).eq("id", customer.id);
+    if (updErr) return toast.error(updErr.message);
+    toast.success("Arquivo removido");
+    qc.invalidateQueries({ queryKey: ["customers"] });
+    setDocsFor((prev: any) => (prev ? { ...prev, [field]: null } : prev));
+  }
+
+  async function openDoc(path: string) {
+    const { data, error } = await supabase.storage.from("customer-documents").createSignedUrl(path, 60 * 5);
+    if (error || !data?.signedUrl) return toast.error(error?.message ?? "Não foi possível abrir");
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   }
 
   const filtered = (data ?? []).filter((c) =>
@@ -256,6 +312,14 @@ function ClientesPage() {
                         </Button>
                         <Button size="icon" variant="ghost" onClick={() => openEdit(c)}>
                           <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Documentos do cliente"
+                          onClick={() => setDocsFor(c)}
+                        >
+                          <FileText className="w-4 h-4" />
                         </Button>
                         {canDelete && (
                           <Button size="icon" variant="ghost" onClick={() => remove(c.id)}>
