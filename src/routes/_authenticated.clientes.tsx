@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Mail, Phone, Trash2, Pencil, Send } from "lucide-react";
 import { toast } from "sonner";
 import { openWhatsAppComposer } from "@/lib/communication";
+import { maskDocument, maskPhone, unmask } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({ meta: [{ title: "Clientes | Stillo Foto" }] }),
