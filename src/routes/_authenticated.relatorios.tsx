@@ -170,6 +170,17 @@ function RelatoriosPage() {
     { total: 0, pago: 0, pendente: 0, atrasado: 0 }
   );
 
+  const contractsAll = useMemo(() => {
+    const s = new Set<string>();
+    rows.forEach((r: any) => { if (r.contracts?.id) s.add(r.contracts.id); });
+    return s.size;
+  }, [rows]);
+  const contractsFiltered = useMemo(() => {
+    const s = new Set<string>();
+    filtered.forEach((r: any) => { if (r.contracts?.id) s.add(r.contracts.id); });
+    return s.size;
+  }, [filtered]);
+
   function exportCsv() {
     const header = ["Cliente", "Nº Contrato", "Contrato", "Parcela", "Vencimento", "Valor", "Status"];
     const lines = [header.join(";")];
@@ -195,10 +206,14 @@ function RelatoriosPage() {
     <div className="space-y-6">
       <header>
         <h1 className="text-3xl font-bold">Relatórios</h1>
-        <p className="text-muted-foreground mt-1">Análise de parcelas por status, contrato e cliente</p>
+        <p className="text-muted-foreground mt-1">
+          Análise de parcelas por status, contrato e cliente ·{" "}
+          <span className="font-medium text-foreground">{contractsAll}</span> contrato(s) lançado(s)
+        </p>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Contratos</p><p className="text-xl font-bold">{contractsFiltered}<span className="text-sm font-normal text-muted-foreground"> / {contractsAll}</span></p></CardContent></Card>
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Total</p><p className="text-xl font-bold">{brl(totals.total)}</p></CardContent></Card>
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Pago</p><p className="text-xl font-bold text-emerald-600">{brl(totals.pago)}</p></CardContent></Card>
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Pendente</p><p className="text-xl font-bold text-amber-600">{brl(totals.pendente)}</p></CardContent></Card>
