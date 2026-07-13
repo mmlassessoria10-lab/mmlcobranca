@@ -27,6 +27,7 @@ function ContratosPage() {
   const { isAdmin, hasRole } = useAuth();
   const canEdit = isAdmin || hasRole("financeiro");
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [form, setForm] = useState({
     customer_id: "",
     description: "",
@@ -154,12 +155,24 @@ function ContratosPage() {
     return { paid, overdue, total };
   }
 
+  const filteredContracts = (contracts ?? []).filter((c: any) => {
+    if (!search.trim()) return true;
+    const t = search.toLowerCase();
+    return (
+      c.customers?.name?.toLowerCase().includes(t) ||
+      c.description?.toLowerCase().includes(t) ||
+      c.contract_number?.toLowerCase().includes(t)
+    );
+  });
+
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Contratos</h1>
-          <p className="text-muted-foreground mt-1">{contracts?.length ?? 0} contratos</p>
+          <p className="text-muted-foreground mt-1">
+            {filteredContracts.length} de {contracts?.length ?? 0} contratos
+          </p>
         </div>
         <div className="flex gap-2">
         {canEdit && (
@@ -219,8 +232,17 @@ function ContratosPage() {
       </header>
 
       <Card><CardContent className="pt-6">
+        <div className="mb-4">
+          <Input
+            placeholder="Buscar por cliente, nº do contrato ou descrição..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="max-w-md"
+          />
+        </div>
         {isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p>
          : !contracts?.length ? <p className="text-sm text-muted-foreground py-8 text-center">Nenhum contrato cadastrado.</p>
+         : !filteredContracts.length ? <p className="text-sm text-muted-foreground py-8 text-center">Nenhum contrato encontrado para "{search}".</p>
          : (
           <Table>
             <TableHeader>
@@ -235,7 +257,7 @@ function ContratosPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {contracts.map((c: any) => {
+              {filteredContracts.map((c: any) => {
                 const s = statusOf(c);
                 return (
                   <TableRow
