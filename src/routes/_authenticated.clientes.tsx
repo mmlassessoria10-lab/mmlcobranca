@@ -192,12 +192,12 @@ function ClientesPage() {
                 {filtered.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{c.document || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{maskDocument(c.document) || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{(c as any).contract_number || "—"}</TableCell>
                     <TableCell>
                       <div className="flex flex-col text-xs text-muted-foreground">
                         {c.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{c.email}</span>}
-                        {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{c.phone}</span>}
+                        {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{maskPhone(c.phone)}</span>}
                       </div>
                     </TableCell>
                     {canEdit && (
