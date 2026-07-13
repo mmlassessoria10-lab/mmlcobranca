@@ -141,8 +141,8 @@ function ClientesPage() {
               <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
                 <div><Label>Nome *</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><Label>CPF/CNPJ</Label><Input value={form.document} onChange={(e) => setForm({ ...form, document: e.target.value })} /></div>
-                  <div><Label>Telefone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="11999999999" /></div>
+                  <div><Label>CPF/CNPJ</Label><Input value={maskDocument(form.document)} onChange={(e) => setForm({ ...form, document: maskDocument(e.target.value) })} placeholder="000.000.000-00" inputMode="numeric" /></div>
+                  <div><Label>Telefone</Label><Input value={maskPhone(form.phone)} onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })} placeholder="(00) 00000-0000" inputMode="tel" /></div>
                 </div>
                 <div><Label>E-mail</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
                 <div><Label>Nº do contrato (auxiliar)</Label><Input value={form.contract_number} onChange={(e) => setForm({ ...form, contract_number: e.target.value })} placeholder="Ex: 2024-0123" /></div>
