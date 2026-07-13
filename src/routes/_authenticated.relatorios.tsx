@@ -181,6 +181,17 @@ function RelatoriosPage() {
     return s.size;
   }, [filtered]);
 
+  const customersAll = useMemo(() => {
+    const s = new Set<string>();
+    rows.forEach((r: any) => { const n = r.contracts?.customers?.name; if (n) s.add(n); });
+    return s.size;
+  }, [rows]);
+  const customersFiltered = useMemo(() => {
+    const s = new Set<string>();
+    filtered.forEach((r: any) => { const n = r.contracts?.customers?.name; if (n) s.add(n); });
+    return s.size;
+  }, [filtered]);
+
   function exportCsv() {
     const header = ["Cliente", "Nº Contrato", "Contrato", "Parcela", "Vencimento", "Valor", "Status"];
     const lines = [header.join(";")];
@@ -208,12 +219,14 @@ function RelatoriosPage() {
         <h1 className="text-3xl font-bold">Relatórios</h1>
         <p className="text-muted-foreground mt-1">
           Análise de parcelas por status, contrato e cliente ·{" "}
-          <span className="font-medium text-foreground">{contractsAll}</span> contrato(s) lançado(s)
+          <span className="font-medium text-foreground">{contractsAll}</span> contrato(s) lançado(s) ·{" "}
+          <span className="font-medium text-foreground">{customersAll}</span> cliente(s)
         </p>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Contratos</p><p className="text-xl font-bold">{contractsFiltered}<span className="text-sm font-normal text-muted-foreground"> / {contractsAll}</span></p></CardContent></Card>
+        <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Clientes</p><p className="text-xl font-bold">{customersFiltered}<span className="text-sm font-normal text-muted-foreground"> / {customersAll}</span></p></CardContent></Card>
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Total</p><p className="text-xl font-bold">{brl(totals.total)}</p></CardContent></Card>
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Pago</p><p className="text-xl font-bold text-emerald-600">{brl(totals.pago)}</p></CardContent></Card>
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Pendente</p><p className="text-xl font-bold text-amber-600">{brl(totals.pendente)}</p></CardContent></Card>
