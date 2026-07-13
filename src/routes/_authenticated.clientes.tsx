@@ -388,6 +388,78 @@ function ClientesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!docsFor} onOpenChange={(o) => !o && setDocsFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Documentos do cliente</DialogTitle>
+            <DialogDescription>
+              {docsFor?.name ? <>Arquivos anexados a <b>{docsFor.name}</b>.</> : "Anexe documentos do cliente."}
+            </DialogDescription>
+          </DialogHeader>
+          {docsFor && (
+            <div className="space-y-3" key={docsRefreshKey}>
+              {DOC_FIELDS.map(({ key, label }) => {
+                const path = docsFor[key] as string | null;
+                const busy = uploadingKey === key;
+                return (
+                  <div key={key} className="flex items-center justify-between gap-3 border rounded-md p-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{label}</p>
+                      {path ? (
+                        <button
+                          type="button"
+                          onClick={() => openDoc(path)}
+                          className="text-xs text-primary underline truncate max-w-[220px] block text-left"
+                        >
+                          {path.split("/").pop()}
+                        </button>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">Nenhum arquivo enviado</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {canEdit && (
+                        <>
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*,application/pdf"
+                              disabled={busy}
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) uploadDoc(docsFor, key, f);
+                                e.target.value = "";
+                              }}
+                            />
+                            <span className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent">
+                              <Upload className="w-3 h-3" /> {busy ? "Enviando..." : path ? "Substituir" : "Enviar"}
+                            </span>
+                          </label>
+                          {path && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              title="Remover"
+                              onClick={() => removeDoc(docsFor, key)}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDocsFor(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
