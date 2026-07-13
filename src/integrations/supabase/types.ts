@@ -316,6 +316,7 @@ export type Database = {
           address_state: string | null
           address_street: string | null
           address_zip: string | null
+          cnh_path: string | null
           contract_number: string | null
           created_at: string
           created_by: string | null
@@ -325,6 +326,9 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          residence_proof_path: string | null
+          rg_back_path: string | null
+          rg_front_path: string | null
           updated_at: string
           user_id: string | null
         }
@@ -336,6 +340,7 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip?: string | null
+          cnh_path?: string | null
           contract_number?: string | null
           created_at?: string
           created_by?: string | null
@@ -345,6 +350,9 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          residence_proof_path?: string | null
+          rg_back_path?: string | null
+          rg_front_path?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -356,6 +364,7 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip?: string | null
+          cnh_path?: string | null
           contract_number?: string | null
           created_at?: string
           created_by?: string | null
@@ -365,6 +374,9 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          residence_proof_path?: string | null
+          rg_back_path?: string | null
+          rg_front_path?: string | null
           updated_at?: string
           user_id?: string | null
         }
