@@ -260,6 +260,63 @@ function ClientesPage() {
                   </div>
                 </div>
                 <div><Label>Observações</Label><Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+                <div className="pt-2 border-t">
+                  <p className="text-sm font-semibold mb-2">Documentos</p>
+                  {editingId ? (
+                    <div className="space-y-2">
+                      {DOC_FIELDS.map(({ key, label }) => {
+                        const current = (data ?? []).find((x: any) => x.id === editingId) as any;
+                        const path = current?.[key] as string | null | undefined;
+                        const busy = uploadingKey === key;
+                        return (
+                          <div key={key} className="flex items-center justify-between gap-3 border rounded-md p-2">
+                            <div className="min-w-0">
+                              <p className="text-xs font-medium">{label}</p>
+                              {path ? (
+                                <button
+                                  type="button"
+                                  onClick={() => openDoc(path)}
+                                  className="text-xs text-primary underline truncate max-w-[240px] block text-left"
+                                >
+                                  {path.split("/").pop()}
+                                </button>
+                              ) : (
+                                <p className="text-xs text-muted-foreground">Nenhum arquivo</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <label className="cursor-pointer">
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*,application/pdf"
+                                  disabled={busy}
+                                  onChange={(e) => {
+                                    const f = e.target.files?.[0];
+                                    if (f && current) uploadDoc(current, key, f);
+                                    e.target.value = "";
+                                  }}
+                                />
+                                <span className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent">
+                                  <Upload className="w-3 h-3" /> {busy ? "Enviando..." : path ? "Substituir" : "Anexar"}
+                                </span>
+                              </label>
+                              {path && current && (
+                                <Button size="icon" variant="ghost" title="Remover" onClick={() => removeDoc(current, key)}>
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Salve o cliente primeiro para anexar CNH, RG e comprovante de residência.
+                    </p>
+                  )}
+                </div>
               </div>
               <DialogFooter><Button onClick={save}>{editingId ? "Atualizar" : "Salvar"}</Button></DialogFooter>
             </DialogContent>
