@@ -75,9 +75,9 @@ function ClientesPage() {
     if (!form.name.trim()) return toast.error("Nome é obrigatório");
     const payload = {
       name: form.name.trim(),
-      document: form.document || null,
+      document: unmask(form.document) || null,
       email: form.email || null,
-      phone: form.phone || null,
+      phone: unmask(form.phone) || null,
       contract_number: form.contract_number?.trim() || null,
       notes: form.notes || null,
       address_street: form.address_street?.trim() || null,
@@ -86,7 +86,7 @@ function ClientesPage() {
       address_neighborhood: form.address_neighborhood?.trim() || null,
       address_city: form.address_city?.trim() || null,
       address_state: form.address_state?.trim().toUpperCase() || null,
-      address_zip: form.address_zip?.trim() || null,
+      address_zip: unmask(form.address_zip) || null,
     } as any;
     const { error } = editingId
       ? await supabase.from("customers").update(payload).eq("id", editingId)
