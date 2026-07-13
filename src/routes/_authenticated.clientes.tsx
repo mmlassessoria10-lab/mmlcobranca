@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Mail, Phone, Trash2, Pencil, Send } from "lucide-react";
 import { toast } from "sonner";
 import { openWhatsAppComposer } from "@/lib/communication";
+import { maskDocument, maskPhone, unmask } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({ meta: [{ title: "Clientes | Stillo Foto" }] }),
@@ -74,9 +75,9 @@ function ClientesPage() {
     if (!form.name.trim()) return toast.error("Nome é obrigatório");
     const payload = {
       name: form.name.trim(),
-      document: form.document || null,
+      document: unmask(form.document) || null,
       email: form.email || null,
-      phone: form.phone || null,
+      phone: unmask(form.phone) || null,
       contract_number: form.contract_number?.trim() || null,
       notes: form.notes || null,
       address_street: form.address_street?.trim() || null,
@@ -85,7 +86,7 @@ function ClientesPage() {
       address_neighborhood: form.address_neighborhood?.trim() || null,
       address_city: form.address_city?.trim() || null,
       address_state: form.address_state?.trim().toUpperCase() || null,
-      address_zip: form.address_zip?.trim() || null,
+      address_zip: unmask(form.address_zip) || null,
     } as any;
     const { error } = editingId
       ? await supabase.from("customers").update(payload).eq("id", editingId)
@@ -140,8 +141,8 @@ function ClientesPage() {
               <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
                 <div><Label>Nome *</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><Label>CPF/CNPJ</Label><Input value={form.document} onChange={(e) => setForm({ ...form, document: e.target.value })} /></div>
-                  <div><Label>Telefone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="11999999999" /></div>
+                  <div><Label>CPF/CNPJ</Label><Input value={maskDocument(form.document)} onChange={(e) => setForm({ ...form, document: maskDocument(e.target.value) })} placeholder="000.000.000-00" inputMode="numeric" /></div>
+                  <div><Label>Telefone</Label><Input value={maskPhone(form.phone)} onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })} placeholder="(00) 00000-0000" inputMode="tel" /></div>
                 </div>
                 <div><Label>E-mail</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
                 <div><Label>Nº do contrato (auxiliar)</Label><Input value={form.contract_number} onChange={(e) => setForm({ ...form, contract_number: e.target.value })} placeholder="Ex: 2024-0123" /></div>
@@ -191,12 +192,12 @@ function ClientesPage() {
                 {filtered.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{c.document || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{maskDocument(c.document) || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{(c as any).contract_number || "—"}</TableCell>
                     <TableCell>
                       <div className="flex flex-col text-xs text-muted-foreground">
                         {c.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{c.email}</span>}
-                        {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{c.phone}</span>}
+                        {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{maskPhone(c.phone)}</span>}
                       </div>
                     </TableCell>
                     {canEdit && (
