@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, ROLE_LABELS, type AppRole } from "@/lib/auth-context";
+import { getAdminUsers, type AdminUserRow } from "@/lib/admin-users.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 function AdminPage() {
   const { isAdmin } = useAuth();
+  const fetchAdminUsers = useServerFn(getAdminUsers);
   const qc = useQueryClient();
   const [invRole, setInvRole] = useState<AppRole>("cobranca");
   const [invPhone, setInvPhone] = useState("");
@@ -78,20 +81,10 @@ function AdminPage() {
     qc.invalidateQueries({ queryKey: ["setting", "agreement_logo"] });
   }
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error: usersError } = useQuery({
     queryKey: ["admin-users"],
     enabled: isAdmin,
-    queryFn: async () => {
-      const [{ data: profiles }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("id,email,full_name,created_at"),
-        supabase.from("user_roles").select("user_id,role"),
-      ]);
-      const map: Record<string, AppRole[]> = {};
-      (roles ?? []).forEach((r: any) => {
-        (map[r.user_id] ??= []).push(r.role);
-      });
-      return (profiles ?? []).map((p: any) => ({ ...p, roles: map[p.id] ?? [] }));
-    },
+    queryFn: fetchAdminUsers,
   });
 
   const { data: invites } = useQuery({
@@ -243,7 +236,11 @@ function AdminPage() {
       <Card>
         <CardHeader><CardTitle className="text-base">Usuários ({data?.length ?? 0})</CardTitle></CardHeader>
         <CardContent>
-          {isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p> : (
+          {usersError ? (
+            <p className="text-sm text-destructive">
+              Não foi possível carregar os usuários: {usersError.message}
+            </p>
+          ) : isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p> : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -253,11 +250,11 @@ function AdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data?.map((u: any) => (
+                {data?.map((u: AdminUserRow) => (
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.full_name ?? "—"}</TableCell>
                     <TableCell>
-                      {u.email}
+                      {u.email ?? "Sem e-mail"}
                       {u.roles.length === 0 && <Badge variant="outline" className="ml-2">sem papel</Badge>}
                     </TableCell>
                     {ROLES.map((r) => {

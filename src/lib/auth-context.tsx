@@ -23,8 +23,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function loadRoles(uid: string) {
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+  async function loadRoles(currentUser: User) {
+    await supabase.from("profiles").upsert({
+      id: currentUser.id,
+      email: currentUser.email ?? null,
+      full_name: (currentUser.user_metadata?.full_name as string | undefined) ?? currentUser.email ?? null,
+    });
+
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", currentUser.id);
     setRoles((data ?? []).map((r) => r.role as AppRole));
   }
 
@@ -33,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        setTimeout(() => loadRoles(s.user.id), 0);
+        setTimeout(() => loadRoles(s.user), 0);
       } else {
         setRoles([]);
       }
@@ -41,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
-      if (s?.user) loadRoles(s.user.id).finally(() => setLoading(false));
+      if (s?.user) loadRoles(s.user).finally(() => setLoading(false));
       else setLoading(false);
     });
     return () => sub.subscription.unsubscribe();
@@ -58,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await supabase.auth.signOut();
     },
     refreshRoles: async () => {
-      if (user) await loadRoles(user.id);
+      if (user) await loadRoles(user);
     },
   };
 
