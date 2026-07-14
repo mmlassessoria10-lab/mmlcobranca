@@ -16,7 +16,7 @@ export const getAdminUsers = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", {
       _user_id: context.userId,
-      _role: "admin" as never,
+      _role: "admin" as any,
     });
 
     if (roleError) throw roleError;
@@ -24,15 +24,20 @@ export const getAdminUsers = createServerFn({ method: "GET" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const [{ data: usersData, error: usersError }, { data: rolesData, error: rolesError }, { data: profilesData, error: profilesError }] = await Promise.all([
+    const [usersResult, rolesResult, profilesResult] = await Promise.all([
       supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
       supabaseAdmin.from("user_roles").select("user_id,role"),
       supabaseAdmin.from("profiles").select("id,email,full_name,created_at"),
     ]);
 
+    const { data: usersData, error: usersError } = usersResult;
+    const { data: rolesData, error: rolesError } = rolesResult;
+    const { data: profilesData, error: profilesError } = profilesResult;
+
     if (usersError) throw usersError;
     if (rolesError) throw rolesError;
     if (profilesError) throw profilesError;
+    if (!usersData) throw new Error("Não foi possível carregar os usuários cadastrados.");
 
     const rolesByUser = new Map<string, string[]>();
     for (const row of rolesData ?? []) {
@@ -61,7 +66,7 @@ export const getAdminUsers = createServerFn({ method: "GET" })
           last_sign_in_at: authUser.last_sign_in_at ?? null,
           email_confirmed_at: authUser.email_confirmed_at ?? null,
           roles: rolesByUser.get(authUser.id) ?? [],
-        } satisfies AdminUserRow;
+        };
       })
       .sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime());
   });
