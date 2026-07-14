@@ -246,7 +246,6 @@ function AdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data?.map((u: any) => (
                 {data?.map((u: AdminUserRow) => (
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.full_name ?? "—"}</TableCell>
