@@ -81,7 +81,7 @@ function AdminPage() {
     qc.invalidateQueries({ queryKey: ["setting", "agreement_logo"] });
   }
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error: usersError } = useQuery({
     queryKey: ["admin-users"],
     enabled: isAdmin,
     queryFn: fetchAdminUsers,
@@ -236,7 +236,11 @@ function AdminPage() {
       <Card>
         <CardHeader><CardTitle className="text-base">Usuários ({data?.length ?? 0})</CardTitle></CardHeader>
         <CardContent>
-          {isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p> : (
+          {usersError ? (
+            <p className="text-sm text-destructive">
+              Não foi possível carregar os usuários: {usersError.message}
+            </p>
+          ) : isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p> : (
             <Table>
               <TableHeader>
                 <TableRow>
