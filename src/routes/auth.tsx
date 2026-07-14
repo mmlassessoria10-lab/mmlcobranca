@@ -21,16 +21,34 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const inviteToken =
+  const urlInviteToken =
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("invite")
       : null;
 
-  async function tryRedeemInvite() {
-    if (!inviteToken) return;
+  // Persist invite so it survives email confirmation / page reloads
+  if (typeof window !== "undefined" && urlInviteToken) {
+    try { localStorage.setItem("pending_invite", urlInviteToken); } catch {}
+  }
+  const inviteToken =
+    urlInviteToken ||
+    (typeof window !== "undefined" ? localStorage.getItem("pending_invite") : null);
+
+  async function tryRedeemInvite(): Promise<boolean> {
+    if (!inviteToken) return false;
     const { data, error } = await supabase.rpc("redeem_invite", { _token: inviteToken });
-    if (error) toast.error("Convite: " + error.message);
-    else if (data) toast.success(`Papel "${data}" atribuído pelo convite.`);
+    if (error) {
+      toast.error("Convite: " + error.message);
+      // Token inválido/expirado/usado — não tentar de novo
+      try { localStorage.removeItem("pending_invite"); } catch {}
+      return false;
+    }
+    if (data) {
+      toast.success(`Papel "${data}" atribuído pelo convite.`);
+      try { localStorage.removeItem("pending_invite"); } catch {}
+      return true;
+    }
+    return false;
   }
 
   async function signIn(e: React.FormEvent) {
@@ -39,9 +57,14 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
-    await tryRedeemInvite();
+    const redeemed = await tryRedeemInvite();
     toast.success("Bem-vindo!");
-    navigate({ to: "/" });
+    if (redeemed) {
+      // Recarrega para que o AuthProvider releia os papéis atribuídos
+      window.location.assign("/");
+    } else {
+      navigate({ to: "/" });
+    }
   }
 
   async function signUp(e: React.FormEvent) {
@@ -58,11 +81,15 @@ function AuthPage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     if (data.session) {
-      await tryRedeemInvite();
+      const redeemed = await tryRedeemInvite();
       toast.success("Conta criada!");
-      navigate({ to: "/" });
+      if (redeemed) {
+        window.location.assign("/");
+      } else {
+        navigate({ to: "/" });
+      }
     } else {
-      toast.success("Conta criada! Você já pode entrar.");
+      toast.success("Conta criada! Confirme seu e-mail e entre para ativar o convite.");
     }
   }
 
