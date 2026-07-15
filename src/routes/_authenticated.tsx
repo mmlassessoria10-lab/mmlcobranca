@@ -16,7 +16,6 @@ import {
   Scale,
   Mail,
   Handshake,
-  Wallet as WalletIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import photogenicLogo from "@/assets/dedubiani-logo.png.asset.json";
