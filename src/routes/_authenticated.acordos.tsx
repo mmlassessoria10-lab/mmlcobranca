@@ -72,6 +72,7 @@ function AcordosPage() {
   const [selTemplate, setSelTemplate] = useState("");
   const [entry, setEntry] = useState<string>("0");
   const [parcels, setParcels] = useState<string>("6");
+  const [discount, setDiscount] = useState<string>("0");
   const [firstDue, setFirstDue] = useState<string>(() => {
     const d = new Date(); d.setDate(d.getDate() + 30);
     return d.toISOString().slice(0,10);
@@ -133,9 +134,12 @@ function AcordosPage() {
   const overdue = useMemo(() => selectedContract ? computeOverdue(selectedContract.installments ?? []) : { items: [], original: 0, fine: 0, interest: 0, updated: 0 }, [selectedContract]);
 
   const parcelsN = Math.max(1, parseInt(parcels || "1"));
-  const entryN = Math.max(0, Math.min(Number(entry || 0), overdue.updated));
-  const balance = Math.max(0, overdue.updated - entryN);
+  const discountN = Math.max(0, Math.min(Number(discount || 0), overdue.updated));
+  const updatedWithDiscount = Math.max(0, overdue.updated - discountN);
+  const entryN = Math.max(0, Math.min(Number(entry || 0), updatedWithDiscount));
+  const balance = Math.max(0, updatedWithDiscount - entryN);
   const installmentValue = balance > 0 ? Math.round((balance / parcelsN) * 100) / 100 : 0;
+  const discountPct = overdue.updated > 0 ? (discountN / overdue.updated) * 100 : 0;
 
   function buildVars() {
     return {
@@ -150,6 +154,9 @@ function AcordosPage() {
       multa: brl(overdue.fine),
       juros: brl(overdue.interest),
       valor_atualizado: brl(overdue.updated),
+      desconto: brl(discountN),
+      desconto_percentual: `${discountPct.toFixed(2).replace(".", ",")}%`,
+      valor_com_desconto: brl(updatedWithDiscount),
       entrada: brl(entryN),
       saldo: brl(balance),
       qtd_parcelas: String(parcelsN),
@@ -198,7 +205,7 @@ function AcordosPage() {
       contract_id: selectedContract?.id ?? null,
       template_id: selectedTemplate?.id ?? null,
       subject: previewSubject, body: previewBody,
-      original_amount: overdue.original, updated_amount: overdue.updated,
+      original_amount: overdue.original, updated_amount: updatedWithDiscount,
       fine_amount: overdue.fine, interest_amount: overdue.interest,
       overdue_count: overdue.items.length,
       entry_amount: entryN, installments_count: parcelsN, installment_amount: installmentValue,
@@ -422,7 +429,23 @@ function AcordosPage() {
                   <div><Label>Nº de parcelas</Label><Input type="number" min={1} value={parcels} onChange={(e) => { setParcels(e.target.value); setLastSaved(null); }} /></div>
                   <div><Label>1º vencimento</Label><Input type="date" value={firstDue} onChange={(e) => { setFirstDue(e.target.value); setLastSaved(null); }} /></div>
                 </div>
+                <div className="grid md:grid-cols-3 gap-3">
+                  <div>
+                    <Label>Desconto (R$)</Label>
+                    <Input type="number" min={0} step="0.01" value={discount} onChange={(e) => { setDiscount(e.target.value); setLastSaved(null); }} />
+                  </div>
+                  <div className="md:col-span-2 flex items-end gap-2 flex-wrap">
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDiscount(String(Math.max(0, overdue.updated - Math.floor(overdue.updated / 100) * 100).toFixed(2))); setLastSaved(null); }}>Arredondar p/ centena</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDiscount(String((overdue.updated - Math.floor(overdue.updated / 1000) * 1000).toFixed(2))); setLastSaved(null); }}>Arredondar p/ milhar</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDiscount(String((overdue.updated * 0.05).toFixed(2))); setLastSaved(null); }}>5%</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDiscount(String((overdue.updated * 0.1).toFixed(2))); setLastSaved(null); }}>10%</Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => { setDiscount("0"); setLastSaved(null); }}>Zerar</Button>
+                  </div>
+                </div>
                 <div className="rounded border p-2 bg-muted/30 text-sm">
+                  Débito atualizado <b>{brl(overdue.updated)}</b>
+                  {discountN > 0 && <> − Desconto <b className="text-emerald-600">{brl(discountN)} ({discountPct.toFixed(2).replace(".", ",")}%)</b> = <b>{brl(updatedWithDiscount)}</b></>}
+                  <br />
                   Entrada <b>{brl(entryN)}</b> + <b>{parcelsN}×</b> de <b>{brl(installmentValue)}</b> · Total <b>{brl(entryN + installmentValue * parcelsN)}</b>
                 </div>
               </CardContent>
