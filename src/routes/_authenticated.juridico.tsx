@@ -49,6 +49,7 @@ function JuridicoPage() {
   const [transferOpen, setTransferOpen] = useState(false);
   const [transfer, setTransfer] = useState({ contract_id: "", stage: "notificacao_extrajudicial", attorney_name: "", honorary_amount: "", honorary_rate: "30", notes: "" });
   const [contractSearch, setContractSearch] = useState("");
+  const [caseSearch, setCaseSearch] = useState("");
 
   const { data: eligible } = useQuery({
     queryKey: ["contracts-eligible-legal"],
@@ -298,8 +299,26 @@ function JuridicoPage() {
       )}
 
       <Card><CardContent className="pt-6">
-        {isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p>
+        <div className="mb-4">
+          <Input
+            placeholder="Localizar por cliente, nº do contrato, descrição ou advogado..."
+            value={caseSearch}
+            onChange={(e) => setCaseSearch(e.target.value)}
+            className="max-w-md"
+          />
+        </div>
+        {(() => {
+          const q = caseSearch.trim().toLowerCase();
+          const filtered = !q ? (cases ?? []) : (cases ?? []).filter((c: any) =>
+            c.contracts?.customers?.name?.toLowerCase().includes(q) ||
+            c.contracts?.customers?.document?.toLowerCase().includes(q) ||
+            c.contracts?.contract_number?.toLowerCase().includes(q) ||
+            c.contracts?.description?.toLowerCase().includes(q) ||
+            c.attorney_name?.toLowerCase().includes(q)
+          );
+          return isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p>
           : !cases?.length ? <p className="text-sm text-muted-foreground py-8 text-center">Nenhum contrato em andamento no jurídico.</p>
+          : !filtered.length ? <p className="text-sm text-muted-foreground py-8 text-center">Nenhum caso encontrado para "{caseSearch}".</p>
           : (
           <Table>
             <TableHeader>
@@ -315,7 +334,7 @@ function JuridicoPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {cases.map((c: any) => {
+              {filtered.map((c: any) => {
                 const t = totals(c);
                 return (
                   <TableRow key={c.id} className="cursor-pointer hover:bg-accent" onClick={() => setOpenCase(c)}>
@@ -349,7 +368,8 @@ function JuridicoPage() {
               })}
             </TableBody>
           </Table>
-        )}
+          );
+        })()}
       </CardContent></Card>
 
       <Dialog open={!!openCase} onOpenChange={(o) => !o && setOpenCase(null)}>
