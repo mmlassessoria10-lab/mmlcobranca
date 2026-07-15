@@ -329,6 +329,7 @@ export type Database = {
           residence_proof_path: string | null
           rg_back_path: string | null
           rg_front_path: string | null
+          sector: string | null
           updated_at: string
           user_id: string | null
         }
@@ -353,6 +354,7 @@ export type Database = {
           residence_proof_path?: string | null
           rg_back_path?: string | null
           rg_front_path?: string | null
+          sector?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -377,6 +379,7 @@ export type Database = {
           residence_proof_path?: string | null
           rg_back_path?: string | null
           rg_front_path?: string | null
+          sector?: string | null
           updated_at?: string
           user_id?: string | null
         }
