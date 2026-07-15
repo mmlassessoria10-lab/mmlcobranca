@@ -334,7 +334,21 @@ function AcordosPage() {
                     <TableCell className="font-medium">{brl(a.total_amount)}</TableCell>
                     <TableCell>
                       {a.accepted_at ? (
-                        <Badge className="bg-emerald-600 hover:bg-emerald-600">Aceito {fmtDate(a.accepted_at)}</Badge>
+                        <div className="space-y-1 text-xs">
+                          <Badge className="bg-emerald-600 hover:bg-emerald-600">Aceito {new Date(a.accepted_at).toLocaleString("pt-BR")}</Badge>
+                          {a.accepted_name && (
+                            <p className="font-medium text-foreground">✍️ {a.accepted_name}</p>
+                          )}
+                          {a.accepted_document && (
+                            <p className="text-muted-foreground">Doc: {a.accepted_document}</p>
+                          )}
+                          {a.accepted_ip && (
+                            <p className="text-muted-foreground">IP: {a.accepted_ip}</p>
+                          )}
+                          {a.accepted_user_agent && (
+                            <p className="text-muted-foreground truncate max-w-[240px]" title={a.accepted_user_agent}>UA: {a.accepted_user_agent}</p>
+                          )}
+                        </div>
                       ) : (
                         <Button size="sm" variant="outline" onClick={() => { const u = `${window.location.origin}/a/${a.accept_token}`; navigator.clipboard.writeText(u); toast.success("Link copiado"); }}>Copiar link</Button>
                       )}
