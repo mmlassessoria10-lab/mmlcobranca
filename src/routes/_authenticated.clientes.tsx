@@ -29,7 +29,7 @@ function ClientesPage() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const emptyForm = {
-    name: "", document: "", email: "", phone: "", contract_number: "", notes: "",
+    name: "", document: "", email: "", phone: "", contract_number: "", sector: "", notes: "",
     address_street: "", address_number: "", address_complement: "",
     address_neighborhood: "", address_city: "", address_state: "", address_zip: "",
   };
@@ -81,6 +81,7 @@ function ClientesPage() {
       email: c.email ?? "",
       phone: c.phone ?? "",
       contract_number: c.contract_number ?? "",
+      sector: (c as any).sector ?? "",
       notes: c.notes ?? "",
       address_street: (c as any).address_street ?? "",
       address_number: (c as any).address_number ?? "",
@@ -110,6 +111,7 @@ function ClientesPage() {
       email: form.email || null,
       phone: unmask(form.phone) || null,
       contract_number: form.contract_number?.trim() || null,
+      sector: form.sector?.trim() || null,
       notes: form.notes || null,
       address_street: form.address_street?.trim() || null,
       address_number: form.address_number?.trim() || null,
@@ -230,6 +232,7 @@ function ClientesPage() {
                 </div>
                 <div><Label>E-mail</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
                 <div><Label>Nº do contrato (auxiliar)</Label><Input value={form.contract_number} onChange={(e) => setForm({ ...form, contract_number: e.target.value })} placeholder="Ex: 2024-0123" /></div>
+                <div><Label>Setor</Label><Input value={form.sector} onChange={(e) => setForm({ ...form, sector: e.target.value })} placeholder="Ex: Comercial, Financeiro..." /></div>
                 <div className="pt-2 border-t">
                   <p className="text-sm font-semibold mb-2">Endereço</p>
                   <div className="grid grid-cols-3 gap-3">
