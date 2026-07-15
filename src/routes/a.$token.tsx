@@ -146,7 +146,7 @@ function PublicAgreement() {
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">Ao aceitar, você concorda com as condições do acordo acima. Nome, documento, data/hora, IP e navegador serão armazenados como comprovação.</p>
                 <div className="grid md:grid-cols-2 gap-3">
-                  <div><Label>Nome completo</Label><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} /></div>
+                  <div><Label>Assinatura digital do devedor</Label><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} /></div>
                   <div><Label>CPF/CNPJ</Label><Input value={doc} onChange={(e) => setDoc(e.target.value)} maxLength={40} /></div>
                 </div>
                 <Button onClick={accept} disabled={submitting} className="w-full md:w-auto">
