@@ -686,6 +686,62 @@ export type Database = {
           },
         ]
       }
+      payables: {
+        Row: {
+          amount: number
+          category: string | null
+          contract_id: string | null
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          sector: string | null
+          status: string
+          supplier: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category?: string | null
+          contract_id?: string | null
+          created_at?: string
+          description: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          sector?: string | null
+          status?: string
+          supplier?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          contract_id?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          sector?: string | null
+          status?: string
+          supplier?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payables_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
