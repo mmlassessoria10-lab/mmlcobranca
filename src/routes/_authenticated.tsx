@@ -16,6 +16,7 @@ import {
   Scale,
   Mail,
   Handshake,
+  Wallet as WalletIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import photogenicLogo from "@/assets/dedubiani-logo.png.asset.json";
@@ -34,6 +35,7 @@ const nav: { to: string; label: string; icon: any; adminOnly?: boolean; hideForR
   { to: "/juridico", label: "Depto Jurídico", icon: Scale, adminOnly: true },
   { to: "/notificacoes", label: "Notificações", icon: Mail, adminOnly: true },
   { to: "/acordos", label: "Acordos", icon: Handshake, adminOnly: true },
+  { to: "/contas-a-pagar", label: "Contas a Pagar", icon: WalletIcon, adminOnly: true },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3, hideForCliente: true },
   { to: "/admin", label: "Administração", icon: Shield, adminOnly: true },
 ];
