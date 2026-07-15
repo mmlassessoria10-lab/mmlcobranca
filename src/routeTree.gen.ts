@@ -16,6 +16,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.
 import { Route as NTokenRouteImport } from './routes/n.$token'
 import { Route as ATokenRouteImport } from './routes/a.$token'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated.relatorios'
+import { Route as AuthenticatedRelatorioSetorRouteImport } from './routes/_authenticated.relatorio-setor'
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated.notificacoes'
 import { Route as AuthenticatedMinhasParcelasRouteImport } from './routes/_authenticated.minhas-parcelas'
 import { Route as AuthenticatedJuridicoRouteImport } from './routes/_authenticated.juridico'
@@ -65,6 +66,12 @@ const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedRelatorioSetorRoute =
+  AuthenticatedRelatorioSetorRouteImport.update({
+    id: '/relatorio-setor',
+    path: '/relatorio-setor',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedNotificacoesRoute =
   AuthenticatedNotificacoesRouteImport.update({
     id: '/notificacoes',
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/juridico': typeof AuthenticatedJuridicoRoute
   '/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
+  '/relatorio-setor': typeof AuthenticatedRelatorioSetorRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
@@ -177,6 +185,7 @@ export interface FileRoutesByTo {
   '/juridico': typeof AuthenticatedJuridicoRoute
   '/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
+  '/relatorio-setor': typeof AuthenticatedRelatorioSetorRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
@@ -201,6 +210,7 @@ export interface FileRoutesById {
   '/_authenticated/juridico': typeof AuthenticatedJuridicoRoute
   '/_authenticated/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
+  '/_authenticated/relatorio-setor': typeof AuthenticatedRelatorioSetorRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/juridico'
     | '/minhas-parcelas'
     | '/notificacoes'
+    | '/relatorio-setor'
     | '/relatorios'
     | '/a/$token'
     | '/n/$token'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '/juridico'
     | '/minhas-parcelas'
     | '/notificacoes'
+    | '/relatorio-setor'
     | '/relatorios'
     | '/a/$token'
     | '/n/$token'
@@ -270,6 +282,7 @@ export interface FileRouteTypes {
     | '/_authenticated/juridico'
     | '/_authenticated/minhas-parcelas'
     | '/_authenticated/notificacoes'
+    | '/_authenticated/relatorio-setor'
     | '/_authenticated/relatorios'
     | '/a/$token'
     | '/n/$token'
@@ -340,6 +353,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/relatorio-setor': {
+      id: '/_authenticated/relatorio-setor'
+      path: '/relatorio-setor'
+      fullPath: '/relatorio-setor'
+      preLoaderRoute: typeof AuthenticatedRelatorioSetorRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/notificacoes': {
@@ -468,6 +488,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedJuridicoRoute: typeof AuthenticatedJuridicoRoute
   AuthenticatedMinhasParcelasRoute: typeof AuthenticatedMinhasParcelasRoute
   AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
+  AuthenticatedRelatorioSetorRoute: typeof AuthenticatedRelatorioSetorRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
@@ -483,6 +504,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedJuridicoRoute: AuthenticatedJuridicoRoute,
   AuthenticatedMinhasParcelasRoute: AuthenticatedMinhasParcelasRoute,
   AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
+  AuthenticatedRelatorioSetorRoute: AuthenticatedRelatorioSetorRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
