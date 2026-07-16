@@ -107,10 +107,24 @@ function Dashboard() {
   const liquidoContratado = totalBase - payTotal;
   const liquidoRecebido = (data?.pago ?? 0) - (payables?.pago ?? 0);
   const kpis = [
-    { label: "Total contratado", value: brl(data?.total ?? 0), pct: totalBase > 0 ? "100%" : "—", icon: DollarSign, color: "text-primary" },
-    { label: "A receber", value: brl(aReceber), pct: pct(aReceber), icon: Wallet, color: "text-sky-600" },
+    { label: "Total contratado", value: brl(totalBase), pct: totalBase > 0 ? "100%" : "—", icon: DollarSign, color: "text-primary" },
     { label: "Pago", value: brl(data?.pago ?? 0), pct: pct(data?.pago ?? 0), icon: CheckCircle2, color: "text-emerald-600" },
+    { label: "A receber", value: brl(aReceber), pct: pct(aReceber), icon: Wallet, color: "text-sky-600" },
     { label: "Em atraso", value: brl(data?.atrasado ?? 0), pct: pct(data?.atrasado ?? 0), icon: AlertTriangle, color: "text-destructive" },
+    {
+      label: "Contas a pagar",
+      value: brl(payTotal),
+      pct: totalBase > 0 ? `${((payTotal / totalBase) * 100).toFixed(1)}% do contratado` : "—",
+      icon: Receipt,
+      color: "text-amber-600",
+    },
+    {
+      label: "Resultado líquido",
+      value: brl(liquidoContratado),
+      pct: totalBase > 0 ? `${((liquidoContratado / totalBase) * 100).toFixed(1)}% do contratado` : "—",
+      icon: TrendingUp,
+      color: liquidoContratado >= 0 ? "text-emerald-600" : "text-destructive",
+    },
   ];
 
   return (
@@ -127,7 +141,7 @@ function Dashboard() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {kpis.map((k) => (
           <Card key={k.label}>
             <CardContent className="pt-6">
@@ -144,99 +158,9 @@ function Dashboard() {
         ))}
       </div>
 
-      <div>
-        <h2 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-2">
-          <Receipt className="w-4 h-4" /> Contas a Pagar (contrapartida dos contratos)
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total a pagar</p>
-                  <p className="text-2xl font-bold mt-1">{brl(payables?.total ?? 0)}</p>
-                  <p className="text-xs font-medium mt-1 text-muted-foreground">
-                    {totalBase > 0 ? `${((payTotal / totalBase) * 100).toFixed(1)}% do contratado` : "—"}
-                  </p>
-                </div>
-                <Receipt className="w-5 h-5 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Pago</p>
-                  <p className="text-2xl font-bold mt-1 text-emerald-600">{brl(payables?.pago ?? 0)}</p>
-                  <p className="text-xs font-medium mt-1 text-emerald-600">{payPct(payables?.pago ?? 0)} do a pagar</p>
-                </div>
-                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Pendente</p>
-                  <p className="text-2xl font-bold mt-1 text-amber-600">{brl(payables?.pendente ?? 0)}</p>
-                  <p className="text-xs font-medium mt-1 text-amber-600">{payPct(payables?.pendente ?? 0)} do a pagar</p>
-                </div>
-                <Clock className="w-5 h-5 text-amber-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Atrasado</p>
-                  <p className="text-2xl font-bold mt-1 text-destructive">{brl(payables?.atrasado ?? 0)}</p>
-                  <p className="text-xs font-medium mt-1 text-destructive">{payPct(payables?.atrasado ?? 0)} do a pagar</p>
-                </div>
-                <AlertTriangle className="w-5 h-5 text-destructive" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" /> Resultado líquido (contratos − contas a pagar)
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Líquido contratado</p>
-                  <p className={`text-2xl font-bold mt-1 ${liquidoContratado >= 0 ? "text-primary" : "text-destructive"}`}>{brl(liquidoContratado)}</p>
-                  <p className="text-xs font-medium mt-1 text-muted-foreground">
-                    {totalBase > 0 ? `${((liquidoContratado / totalBase) * 100).toFixed(1)}% do contratado` : "—"}
-                  </p>
-                </div>
-                <TrendingDown className="w-5 h-5 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Líquido recebido (caixa)</p>
-                  <p className={`text-2xl font-bold mt-1 ${liquidoRecebido >= 0 ? "text-emerald-600" : "text-destructive"}`}>{brl(liquidoRecebido)}</p>
-                  <p className="text-xs font-medium mt-1 text-muted-foreground">
-                    Recebido {brl(data?.pago ?? 0)} − Pago {brl(payables?.pago ?? 0)}
-                  </p>
-                </div>
-                <TrendingUp className="w-5 h-5 text-emerald-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <p className="text-xs text-muted-foreground">
+        Resultado líquido = Total contratado − Contas a pagar. Caixa líquido: {brl(liquidoRecebido)} (Recebido {brl(data?.pago ?? 0)} − Pago {brl(payables?.pago ?? 0)}).
+      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
