@@ -4,7 +4,7 @@ export const LEGAL_CONTACT = {
   phone: "(65) 98136-0021",
 };
 
-const PUBLIC_APP_ORIGIN = "https://photogenicimage.lovable.app";
+const PUBLIC_APP_ORIGIN = "https://dedubianiformaturas.lovable.app";
 
 function normalizeBrazilianPhone(phone: string) {
   const digits = phone.replace(/\D/g, "");
