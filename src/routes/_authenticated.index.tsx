@@ -104,12 +104,20 @@ function Dashboard() {
   const payTotal = payables?.total ?? 0;
   const payPct = (v: number) => (payTotal > 0 ? `${((v / payTotal) * 100).toFixed(1)}%` : "—");
   const aReceber = data?.aberto ?? 0;
+  const payAberto = (payables?.pendente ?? 0) + (payables?.atrasado ?? 0);
+  const aReceberLiquido = aReceber - payAberto;
   const liquidoContratado = totalBase - payTotal;
   const liquidoRecebido = (data?.pago ?? 0) - (payables?.pago ?? 0);
   const kpis = [
     { label: "Total contratado", value: brl(totalBase), pct: totalBase > 0 ? "100%" : "—", icon: DollarSign, color: "text-primary" },
     { label: "Pago", value: brl(data?.pago ?? 0), pct: pct(data?.pago ?? 0), icon: CheckCircle2, color: "text-emerald-600" },
-    { label: "A receber", value: brl(aReceber), pct: pct(aReceber), icon: Wallet, color: "text-sky-600" },
+    {
+      label: "A receber (líquido)",
+      value: brl(aReceberLiquido),
+      pct: `Bruto ${brl(aReceber)} − A pagar em aberto ${brl(payAberto)}`,
+      icon: Wallet,
+      color: aReceberLiquido >= 0 ? "text-sky-600" : "text-destructive",
+    },
     { label: "Em atraso", value: brl(data?.atrasado ?? 0), pct: pct(data?.atrasado ?? 0), icon: AlertTriangle, color: "text-destructive" },
     {
       label: "Contas a pagar",
@@ -161,6 +169,40 @@ function Dashboard() {
       <p className="text-xs text-muted-foreground">
         Resultado líquido = Total contratado − Contas a pagar. Caixa líquido: {brl(liquidoRecebido)} (Recebido {brl(data?.pago ?? 0)} − Pago {brl(payables?.pago ?? 0)}).
       </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Wallet className="w-4 h-4 text-sky-600" /> Contas a receber — detalhes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between"><span className="text-muted-foreground">Total contratado</span><span className="font-medium">{brl(totalBase)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Recebido (pago)</span><span className="font-medium text-emerald-600">{brl(data?.pago ?? 0)} <span className="text-xs text-muted-foreground">({pct(data?.pago ?? 0)})</span></span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">A receber (bruto)</span><span className="font-medium text-sky-600">{brl(aReceber)} <span className="text-xs text-muted-foreground">({pct(aReceber)})</span></span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Em atraso</span><span className="font-medium text-destructive">{brl(data?.atrasado ?? 0)} <span className="text-xs text-muted-foreground">({data?.qtdAtraso ?? 0} parcelas)</span></span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">A vencer</span><span className="font-medium">{brl(aReceber - (data?.atrasado ?? 0))}</span></div>
+            <div className="border-t pt-2 flex justify-between"><span className="font-semibold">A receber líquido</span><span className={`font-bold ${aReceberLiquido >= 0 ? "text-sky-600" : "text-destructive"}`}>{brl(aReceberLiquido)}</span></div>
+            <p className="text-xs text-muted-foreground">Líquido = A receber bruto − Contas a pagar em aberto ({brl(payAberto)}).</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-amber-600" /> Contas a pagar — detalhes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between"><span className="text-muted-foreground">Total lançado</span><span className="font-medium">{brl(payTotal)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Pago</span><span className="font-medium text-emerald-600">{brl(payables?.pago ?? 0)} <span className="text-xs text-muted-foreground">({payPct(payables?.pago ?? 0)})</span></span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Pendente (a vencer)</span><span className="font-medium text-amber-600">{brl(payables?.pendente ?? 0)} <span className="text-xs text-muted-foreground">({payPct(payables?.pendente ?? 0)})</span></span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Em atraso</span><span className="font-medium text-destructive">{brl(payables?.atrasado ?? 0)} <span className="text-xs text-muted-foreground">({payPct(payables?.atrasado ?? 0)})</span></span></div>
+            <div className="border-t pt-2 flex justify-between"><span className="font-semibold">Em aberto</span><span className="font-bold text-amber-600">{brl(payAberto)}</span></div>
+            <p className="text-xs text-muted-foreground">Em aberto = Pendente + Em atraso. Este é o valor que reduz o "A receber líquido".</p>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
