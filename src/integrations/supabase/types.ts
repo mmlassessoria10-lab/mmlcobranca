@@ -703,6 +703,7 @@ export type Database = {
           sector: string | null
           status: string
           supplier: string | null
+          supplier_id: string | null
           updated_at: string
         }
         Insert: {
@@ -718,6 +719,7 @@ export type Database = {
           sector?: string | null
           status?: string
           supplier?: string | null
+          supplier_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -733,6 +735,7 @@ export type Database = {
           sector?: string | null
           status?: string
           supplier?: string | null
+          supplier_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -741,6 +744,13 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payables_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -763,6 +773,51 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          active: boolean
+          address: string | null
+          category: string | null
+          contact_name: string | null
+          created_at: string
+          document: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          category?: string | null
+          contact_name?: string | null
+          created_at?: string
+          document?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          category?: string | null
+          contact_name?: string | null
+          created_at?: string
+          document?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
