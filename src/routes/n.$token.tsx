@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, ShieldCheck, Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import headerAsset from "@/assets/mml-logo.jpeg.asset.json";
 
 export const Route = createFileRoute("/n/$token")({
   head: () => {
@@ -95,6 +96,9 @@ function PublicNotification() {
             </p>
           </CardHeader>
           <CardContent>
+            <div className="flex justify-center mb-6">
+              <img src={headerAsset.url} alt="MML Assessoria & Cobrança" className="max-h-28 w-auto" />
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
               <div className="rounded border p-2"><p className="text-xs text-muted-foreground">Parcelas</p><p className="font-semibold">{data.overdue_count}</p></div>
               <div className="rounded border p-2"><p className="text-xs text-muted-foreground">Original</p><p className="font-semibold">{brl(data.original_amount)}</p></div>
