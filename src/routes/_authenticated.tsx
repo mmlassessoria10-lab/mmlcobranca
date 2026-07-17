@@ -17,6 +17,7 @@ import {
   Mail,
   Handshake,
 } from "lucide-react";
+import { Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import photogenicLogo from "@/assets/dedubiani-logo.png.asset.json";
 
@@ -35,6 +36,7 @@ const nav: { to: string; label: string; icon: any; adminOnly?: boolean; hideForR
   { to: "/notificacoes", label: "Notificações", icon: Mail, adminOnly: true },
   { to: "/acordos", label: "Acordos", icon: Handshake, adminOnly: true },
   { to: "/contas-a-pagar", label: "Contas a Pagar", icon: Wallet, adminOnly: true },
+  { to: "/fornecedores", label: "Fornecedores", icon: Truck, adminOnly: true },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3, hideForCliente: true },
   { to: "/relatorio-setor", label: "Pagar x Receber (Setor)", icon: BarChart3, adminOnly: true },
   { to: "/admin", label: "Administração", icon: Shield, adminOnly: true },
