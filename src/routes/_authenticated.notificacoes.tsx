@@ -17,6 +17,26 @@ import { Mail, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCi
 import { Eye } from "lucide-react";
 import { toast } from "sonner";
 import { buildLegalNoticeWhatsAppMessage, openEmailComposer, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
+import headerAsset from "@/assets/mml-logo.jpeg.asset.json";
+
+const LOGO_URL = typeof window !== "undefined" ? `${window.location.origin}${headerAsset.url}` : headerAsset.url;
+
+function printHtml(subject: string, body: string) {
+  const safeBody = (body ?? "").replace(/</g, "&lt;");
+  return `<html><head><title>${subject || "Notificação"}</title>
+    <style>
+      body{font-family:Georgia,serif;padding:40px;line-height:1.6;color:#111;max-width:720px;margin:0 auto;}
+      .logo{display:flex;justify-content:center;margin-bottom:16px;}
+      .logo img{max-height:110px;width:auto;}
+      h1{font-size:18px;text-transform:uppercase;text-align:center;margin:8px 0 24px;}
+      .content{white-space:pre-wrap;}
+    </style>
+    </head><body>
+      <div class="logo"><img src="${LOGO_URL}" alt="Logo" /></div>
+      <h1>${subject || "Notificação"}</h1>
+      <div class="content">${safeBody}</div>
+    </body></html>`;
+}
 
 const AVAILABLE_VARS: { key: string; label: string; example: string }[] = [
   { key: "cliente_nome", label: "Nome do cliente", example: "João da Silva" },
@@ -280,10 +300,7 @@ function NotificacoesPage() {
     if (!previewBody) return toast.error("Gere a prévia primeiro");
     const w = window.open("", "_blank", "width=800,height=900");
     if (!w) return;
-    w.document.write(`<html><head><title>${previewSubject || "Notificação"}</title>
-      <style>body{font-family:Georgia,serif;padding:40px;line-height:1.6;color:#111;max-width:720px;margin:0 auto;white-space:pre-wrap;}
-      h1{font-size:18px;text-transform:uppercase;text-align:center;margin-bottom:24px;}</style>
-      </head><body><h1>${previewSubject || "Notificação"}</h1><div>${previewBody.replace(/</g,"&lt;")}</div></body></html>`);
+    w.document.write(printHtml(previewSubject, previewBody));
     w.document.close();
     setTimeout(() => w.print(), 300);
   }
@@ -292,10 +309,7 @@ function NotificacoesPage() {
     if (!item) return;
     const w = window.open("", "_blank", "width=800,height=900");
     if (!w) return;
-    w.document.write(`<html><head><title>${item.subject || "Notificação"}</title>
-      <style>body{font-family:Georgia,serif;padding:40px;line-height:1.6;color:#111;max-width:720px;margin:0 auto;white-space:pre-wrap;}
-      h1{font-size:18px;text-transform:uppercase;text-align:center;margin-bottom:24px;}</style>
-      </head><body><h1>${item.subject || "Notificação"}</h1><div>${(item.body ?? "").replace(/</g,"&lt;")}</div></body></html>`);
+    w.document.write(printHtml(item.subject, item.body));
     w.document.close();
     setTimeout(() => w.print(), 300);
   }
