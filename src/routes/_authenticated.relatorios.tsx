@@ -233,6 +233,25 @@ function RelatoriosPage() {
         <Card><CardContent className="pt-6"><p className="text-xs text-muted-foreground">Atrasado</p><p className="text-xl font-bold text-destructive">{brl(totals.atrasado)}</p></CardContent></Card>
       </div>
 
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">Financeiro</p>
+              <p className="text-xs text-muted-foreground">Acesso rápido aos relatórios financeiros.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link to="/contas-a-pagar">Contas a Pagar</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/relatorio-setor">Contas a Pagar x Receber por Setor</Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card><CardContent className="pt-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-2">
           <Input placeholder="Buscar por cliente, nº ou contrato..." value={q} onChange={(e) => setQ(e.target.value)} className="max-w-md" />
