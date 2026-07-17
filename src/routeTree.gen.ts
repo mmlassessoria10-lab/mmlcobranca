@@ -21,6 +21,7 @@ import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authent
 import { Route as AuthenticatedMinhasParcelasRouteImport } from './routes/_authenticated.minhas-parcelas'
 import { Route as AuthenticatedJuridicoRouteImport } from './routes/_authenticated.juridico'
 import { Route as AuthenticatedImportarRouteImport } from './routes/_authenticated.importar'
+import { Route as AuthenticatedFornecedoresRouteImport } from './routes/_authenticated.fornecedores'
 import { Route as AuthenticatedContratosRouteImport } from './routes/_authenticated.contratos'
 import { Route as AuthenticatedContasAPagarRouteImport } from './routes/_authenticated.contas-a-pagar'
 import { Route as AuthenticatedComissoesRouteImport } from './routes/_authenticated.comissoes'
@@ -94,6 +95,12 @@ const AuthenticatedImportarRoute = AuthenticatedImportarRouteImport.update({
   path: '/importar',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedFornecedoresRoute =
+  AuthenticatedFornecedoresRouteImport.update({
+    id: '/fornecedores',
+    path: '/fornecedores',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedContratosRoute = AuthenticatedContratosRouteImport.update({
   id: '/contratos',
   path: '/contratos',
@@ -159,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/comissoes': typeof AuthenticatedComissoesRoute
   '/contas-a-pagar': typeof AuthenticatedContasAPagarRoute
   '/contratos': typeof AuthenticatedContratosRouteWithChildren
+  '/fornecedores': typeof AuthenticatedFornecedoresRoute
   '/importar': typeof AuthenticatedImportarRoute
   '/juridico': typeof AuthenticatedJuridicoRoute
   '/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
@@ -181,6 +189,7 @@ export interface FileRoutesByTo {
   '/comissoes': typeof AuthenticatedComissoesRoute
   '/contas-a-pagar': typeof AuthenticatedContasAPagarRoute
   '/contratos': typeof AuthenticatedContratosRouteWithChildren
+  '/fornecedores': typeof AuthenticatedFornecedoresRoute
   '/importar': typeof AuthenticatedImportarRoute
   '/juridico': typeof AuthenticatedJuridicoRoute
   '/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
@@ -206,6 +215,7 @@ export interface FileRoutesById {
   '/_authenticated/comissoes': typeof AuthenticatedComissoesRoute
   '/_authenticated/contas-a-pagar': typeof AuthenticatedContasAPagarRoute
   '/_authenticated/contratos': typeof AuthenticatedContratosRouteWithChildren
+  '/_authenticated/fornecedores': typeof AuthenticatedFornecedoresRoute
   '/_authenticated/importar': typeof AuthenticatedImportarRoute
   '/_authenticated/juridico': typeof AuthenticatedJuridicoRoute
   '/_authenticated/minhas-parcelas': typeof AuthenticatedMinhasParcelasRoute
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/comissoes'
     | '/contas-a-pagar'
     | '/contratos'
+    | '/fornecedores'
     | '/importar'
     | '/juridico'
     | '/minhas-parcelas'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/comissoes'
     | '/contas-a-pagar'
     | '/contratos'
+    | '/fornecedores'
     | '/importar'
     | '/juridico'
     | '/minhas-parcelas'
@@ -278,6 +290,7 @@ export interface FileRouteTypes {
     | '/_authenticated/comissoes'
     | '/_authenticated/contas-a-pagar'
     | '/_authenticated/contratos'
+    | '/_authenticated/fornecedores'
     | '/_authenticated/importar'
     | '/_authenticated/juridico'
     | '/_authenticated/minhas-parcelas'
@@ -390,6 +403,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedImportarRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/fornecedores': {
+      id: '/_authenticated/fornecedores'
+      path: '/fornecedores'
+      fullPath: '/fornecedores'
+      preLoaderRoute: typeof AuthenticatedFornecedoresRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/contratos': {
       id: '/_authenticated/contratos'
       path: '/contratos'
@@ -484,6 +504,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedComissoesRoute: typeof AuthenticatedComissoesRoute
   AuthenticatedContasAPagarRoute: typeof AuthenticatedContasAPagarRoute
   AuthenticatedContratosRoute: typeof AuthenticatedContratosRouteWithChildren
+  AuthenticatedFornecedoresRoute: typeof AuthenticatedFornecedoresRoute
   AuthenticatedImportarRoute: typeof AuthenticatedImportarRoute
   AuthenticatedJuridicoRoute: typeof AuthenticatedJuridicoRoute
   AuthenticatedMinhasParcelasRoute: typeof AuthenticatedMinhasParcelasRoute
@@ -500,6 +521,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedComissoesRoute: AuthenticatedComissoesRoute,
   AuthenticatedContasAPagarRoute: AuthenticatedContasAPagarRoute,
   AuthenticatedContratosRoute: AuthenticatedContratosRouteWithChildren,
+  AuthenticatedFornecedoresRoute: AuthenticatedFornecedoresRoute,
   AuthenticatedImportarRoute: AuthenticatedImportarRoute,
   AuthenticatedJuridicoRoute: AuthenticatedJuridicoRoute,
   AuthenticatedMinhasParcelasRoute: AuthenticatedMinhasParcelasRoute,
