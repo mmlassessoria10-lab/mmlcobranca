@@ -32,6 +32,7 @@ type Payable = {
   status: "pendente" | "paga" | "atrasada" | "cancelada";
   notes: string | null;
   contract_id: string | null;
+  supplier_id: string | null;
 };
 
 const emptyForm = {
@@ -45,6 +46,7 @@ const emptyForm = {
   status: "pendente" as Payable["status"],
   notes: "",
   contract_id: "" as string,
+  supplier_id: "" as string,
 };
 
 function ContasAPagarPage() {
@@ -63,10 +65,21 @@ function ContasAPagarPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payables")
-        .select("id,description,category,supplier,sector,amount,due_date,paid_at,status,notes,contract_id")
+        .select("id,description,category,supplier,sector,amount,due_date,paid_at,status,notes,contract_id,supplier_id")
         .order("due_date", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Payable[];
+    },
+  });
+
+  const { data: suppliers } = useQuery({
+    queryKey: ["suppliers-simple"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("suppliers")
+        .select("id,name,active")
+        .order("name", { ascending: true });
+      return data ?? [];
     },
   });
 
@@ -138,6 +151,7 @@ function ContasAPagarPage() {
       status: r.status,
       notes: r.notes ?? "",
       contract_id: r.contract_id ?? "",
+      supplier_id: r.supplier_id ?? "",
     });
     setOpen(true);
   }
@@ -158,6 +172,7 @@ function ContasAPagarPage() {
       status: form.paid_at ? "paga" : form.status,
       notes: form.notes || null,
       contract_id: form.contract_id || null,
+      supplier_id: form.supplier_id || null,
     };
     const { error } = editing
       ? await supabase.from("payables").update(payload).eq("id", editing.id)
@@ -342,7 +357,31 @@ function ContasAPagarPage() {
             </div>
             <div className="space-y-1">
               <Label>Fornecedor</Label>
-              <Input value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} />
+              <Select
+                value={form.supplier_id || "none"}
+                onValueChange={(v) => {
+                  if (v === "none") {
+                    setForm({ ...form, supplier_id: "" });
+                  } else {
+                    const s = (suppliers ?? []).find((x: any) => x.id === v);
+                    setForm({ ...form, supplier_id: v, supplier: s?.name ?? form.supplier });
+                  }
+                }}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum / avulso</SelectItem>
+                  {(suppliers ?? []).map((s: any) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                className="mt-1"
+                placeholder="Ou digite um nome avulso"
+                value={form.supplier}
+                onChange={(e) => setForm({ ...form, supplier: e.target.value })}
+              />
             </div>
             <div className="space-y-1">
               <Label>Setor</Label>
