@@ -28,6 +28,7 @@ import { Route as AuthenticatedComissoesRouteImport } from './routes/_authentica
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated.clientes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedAcordosRouteImport } from './routes/_authenticated.acordos'
+import { Route as ApiPublicAsaasWebhookRouteImport } from './routes/api/public/asaas-webhook'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated.contratos.$id'
 import { Route as ApiPublicNotificationsTokenRouteImport } from './routes/api/public/notifications.$token'
 import { Route as ApiPublicHooksRemindersRouteImport } from './routes/api/public/hooks/reminders'
@@ -132,6 +133,11 @@ const AuthenticatedAcordosRoute = AuthenticatedAcordosRouteImport.update({
   path: '/acordos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiPublicAsaasWebhookRoute = ApiPublicAsaasWebhookRouteImport.update({
+  id: '/api/public/asaas-webhook',
+  path: '/api/public/asaas-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedContratosIdRoute =
   AuthenticatedContratosIdRouteImport.update({
     id: '/$id',
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/n/$token': typeof NTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/n/$token': typeof NTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
+  '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/a/$token'
     | '/n/$token'
     | '/contratos/$id'
+    | '/api/public/asaas-webhook'
     | '/api/public/agreements/$token'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
@@ -276,6 +286,7 @@ export interface FileRouteTypes {
     | '/n/$token'
     | '/'
     | '/contratos/$id'
+    | '/api/public/asaas-webhook'
     | '/api/public/agreements/$token'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '/n/$token'
     | '/_authenticated/'
     | '/_authenticated/contratos/$id'
+    | '/api/public/asaas-webhook'
     | '/api/public/agreements/$token'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
@@ -312,6 +324,7 @@ export interface RootRouteChildren {
   TrustRoute: typeof TrustRoute
   ATokenRoute: typeof ATokenRoute
   NTokenRoute: typeof NTokenRoute
+  ApiPublicAsaasWebhookRoute: typeof ApiPublicAsaasWebhookRoute
   ApiPublicAgreementsTokenRoute: typeof ApiPublicAgreementsTokenRoute
   ApiPublicHooksRemindersRoute: typeof ApiPublicHooksRemindersRoute
   ApiPublicNotificationsTokenRoute: typeof ApiPublicNotificationsTokenRoute
@@ -452,6 +465,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAcordosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/asaas-webhook': {
+      id: '/api/public/asaas-webhook'
+      path: '/api/public/asaas-webhook'
+      fullPath: '/api/public/asaas-webhook'
+      preLoaderRoute: typeof ApiPublicAsaasWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/contratos/$id': {
       id: '/_authenticated/contratos/$id'
       path: '/$id'
@@ -541,6 +561,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrustRoute: TrustRoute,
   ATokenRoute: ATokenRoute,
   NTokenRoute: NTokenRoute,
+  ApiPublicAsaasWebhookRoute: ApiPublicAsaasWebhookRoute,
   ApiPublicAgreementsTokenRoute: ApiPublicAgreementsTokenRoute,
   ApiPublicHooksRemindersRoute: ApiPublicHooksRemindersRoute,
   ApiPublicNotificationsTokenRoute: ApiPublicNotificationsTokenRoute,

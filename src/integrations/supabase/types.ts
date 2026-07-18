@@ -316,6 +316,7 @@ export type Database = {
           address_state: string | null
           address_street: string | null
           address_zip: string | null
+          asaas_customer_id: string | null
           cnh_path: string | null
           contract_number: string | null
           created_at: string
@@ -341,6 +342,7 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip?: string | null
+          asaas_customer_id?: string | null
           cnh_path?: string | null
           contract_number?: string | null
           created_at?: string
@@ -366,6 +368,7 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zip?: string | null
+          asaas_customer_id?: string | null
           cnh_path?: string | null
           contract_number?: string | null
           created_at?: string
@@ -388,6 +391,8 @@ export type Database = {
       installments: {
         Row: {
           amount: number
+          asaas_invoice_url: string | null
+          asaas_payment_id: string | null
           contract_id: string
           created_at: string
           due_date: string
@@ -401,6 +406,8 @@ export type Database = {
         }
         Insert: {
           amount: number
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
           contract_id: string
           created_at?: string
           due_date: string
@@ -414,6 +421,8 @@ export type Database = {
         }
         Update: {
           amount?: number
+          asaas_invoice_url?: string | null
+          asaas_payment_id?: string | null
           contract_id?: string
           created_at?: string
           due_date?: string
