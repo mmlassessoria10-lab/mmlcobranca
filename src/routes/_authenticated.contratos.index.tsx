@@ -43,6 +43,7 @@ function ContratosPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ description: "", first_due_date: "", vendor_id: "none" });
   const [editOrigDue, setEditOrigDue] = useState("");
+  const syncContract = useServerFn(syncContractToAsaas);
 
   const { data: customers } = useQuery({
     queryKey: ["customers-light"],
@@ -92,6 +93,13 @@ function ContratosPage() {
     const { error: e2 } = await supabase.from("installments").insert(installments);
     if (e2) return toast.error(e2.message);
     toast.success(`Contrato criado com ${count} parcelas`);
+    try {
+      const r = await syncContract({ data: { contractId: contract.id } });
+      if (r?.created > 0) toast.success(`Asaas: ${r.created} cobrança(s) gerada(s)`);
+      if (r?.errors?.length) toast.warning(`Asaas: ${r.errors[0]}`);
+    } catch (e: any) {
+      toast.warning(`Contrato salvo, mas Asaas falhou: ${e?.message || e}`);
+    }
     setOpen(false);
     qc.invalidateQueries({ queryKey: ["contracts"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
