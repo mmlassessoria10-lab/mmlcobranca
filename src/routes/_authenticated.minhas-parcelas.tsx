@@ -178,21 +178,33 @@ function MinhasParcelas() {
                               {i.paid_at ? (
                                 <span className="text-muted-foreground text-xs">—</span>
                               ) : (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 px-2 text-xs"
-                                  onClick={() =>
-                                    setPix({
-                                      amount: Number(i.amount),
-                                      title: `Parcela ${i.number} • ${brl(i.amount)}`,
-                                      txid: `PARC${i.number}`,
-                                    })
-                                  }
-                                  title="Gerar QR Code PIX com valor da parcela"
-                                >
-                                  <QrCode className="w-3 h-3 mr-1" /> Pagar PIX
-                                </Button>
+                                <div className="flex flex-wrap gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2 text-xs"
+                                    onClick={() =>
+                                      setPix({
+                                        amount: Number(i.amount),
+                                        title: `Parcela ${i.number} • ${brl(i.amount)}`,
+                                        txid: `PARC${i.number}`,
+                                      })
+                                    }
+                                    title="Gerar QR Code PIX com valor da parcela"
+                                  >
+                                    <QrCode className="w-3 h-3 mr-1" /> PIX
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="h-7 px-2 text-xs"
+                                    disabled={asaasBusy === i.id}
+                                    onClick={() => payWithAsaas(i)}
+                                    title="Pagar via Asaas (PIX, boleto ou cartão)"
+                                  >
+                                    <Link2 className="w-3 h-3 mr-1" />
+                                    {asaasBusy === i.id ? "Gerando..." : i.asaas_invoice_url ? "Abrir cobrança" : "Pagar online"}
+                                  </Button>
+                                </div>
                               )}
                             </td>
                           </tr>
