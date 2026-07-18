@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { brl, fmtDate, installmentStatus } from "@/lib/format";
-import { ArrowLeft, CheckCircle2, MessageCircle, Mail, Trash2, ArrowRightLeft, Scale } from "lucide-react";
+import { ArrowLeft, CheckCircle2, MessageCircle, Mail, Trash2, ArrowRightLeft, Scale, Link2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { buildInstallmentReminderWhatsAppMessage, openEmailComposer, openWhatsAppComposer } from "@/lib/communication";
+import { useServerFn } from "@tanstack/react-start";
+import { createAsaasPaymentForInstallment } from "@/lib/asaas/asaas.functions";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
   head: () => ({ meta: [{ title: "Contrato | Stillo Foto" }] }),
@@ -28,6 +30,23 @@ function ContractDetail() {
   const canPay = isAdmin || hasRole("financeiro") || hasRole("cobranca");
   const canRemind = isAdmin || hasRole("financeiro") || hasRole("cobranca");
   const canDelete = isAdmin;
+  const canAsaas = isAdmin || hasRole("financeiro") || hasRole("cobranca");
+  const generateAsaas = useServerFn(createAsaasPaymentForInstallment);
+  const [asaasBusy, setAsaasBusy] = useState<string | null>(null);
+
+  async function generateAsaasLink(inst: any) {
+    setAsaasBusy(inst.id);
+    try {
+      const res = await generateAsaas({ data: { installmentId: inst.id } });
+      await navigator.clipboard.writeText(res.invoiceUrl).catch(() => {});
+      toast.success(res.reused ? "Link Asaas já existente — copiado" : "Link Asaas gerado e copiado");
+      qc.invalidateQueries({ queryKey: ["contract", id] });
+    } catch (e: any) {
+      toast.error(e?.message || "Falha ao gerar cobrança Asaas");
+    } finally {
+      setAsaasBusy(null);
+    }
+  }
   const [payTarget, setPayTarget] = useState<any | null>(null);
   const [payDate, setPayDate] = useState<string>("");
   const [payAmount, setPayAmount] = useState<string>("");
