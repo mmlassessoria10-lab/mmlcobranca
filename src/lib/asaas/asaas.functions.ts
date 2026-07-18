@@ -96,3 +96,62 @@ export const createAsaasPaymentForInstallment = createServerFn({ method: "POST" 
 
     return { invoiceUrl, paymentId, reused: false };
   });
+
+export const syncCustomerToAsaas = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { customerId: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { data: customer, error } = await context.supabase
+      .from("customers")
+      .select("*")
+      .eq("id", data.customerId)
+      .single();
+    if (error || !customer) throw new Error(error?.message || "Cliente não encontrado");
+    if (!onlyDigits(customer.document)) throw new Error("CPF/CNPJ obrigatório para exportar ao Asaas");
+    const asaasCustomerId = await ensureCustomer(context, customer);
+    return { asaasCustomerId, reused: !!customer.asaas_customer_id };
+  });
+
+export const syncContractToAsaas = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { contractId: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { data: contract, error } = await context.supabase
+      .from("contracts")
+      .select("id, description, customer_id, customers:customer_id (*), installments (id, number, due_date, amount, asaas_invoice_url, asaas_payment_id, paid_at)")
+      .eq("id", data.contractId)
+      .single();
+    if (error || !contract) throw new Error(error?.message || "Contrato não encontrado");
+    const customer: any = (contract as any).customers;
+    if (!customer) throw new Error("Cliente do contrato não encontrado");
+    if (!onlyDigits(customer.document)) throw new Error("CPF/CNPJ do cliente é obrigatório");
+
+    const asaasCustomerId = await ensureCustomer(context, customer);
+    const pendings: any[] = ((contract as any).installments || [])
+      .filter((i: any) => !i.paid_at && !i.asaas_invoice_url)
+      .sort((a: any, b: any) => a.number - b.number);
+
+    let created = 0;
+    const errors: string[] = [];
+    for (const inst of pendings) {
+      try {
+        const paymentBody: Record<string, any> = {
+          customer: asaasCustomerId,
+          billingType: BILLING_TYPE,
+          value: Number(inst.amount),
+          dueDate: inst.due_date,
+          description: `${(contract as any).description || "Contrato"} - Parcela ${inst.number}`,
+          externalReference: inst.id,
+        };
+        const res = await asaasFetch("/payments", { method: "POST", body: JSON.stringify(paymentBody) });
+        await context.supabase
+          .from("installments")
+          .update({ asaas_invoice_url: res.invoiceUrl, asaas_payment_id: res.id })
+          .eq("id", inst.id);
+        created++;
+      } catch (e: any) {
+        errors.push(`Parcela ${inst.number}: ${e?.message || e}`);
+      }
+    }
+    return { asaasCustomerId, created, skipped: pendings.length - created, errors };
+  });
