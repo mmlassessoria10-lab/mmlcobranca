@@ -353,6 +353,9 @@ function ContractDetail() {
                             <Button size="sm" variant="outline" asChild>
                               <a href={i.asaas_invoice_url} target="_blank" rel="noreferrer"><Link2 className="w-3.5 h-3.5 mr-1" />Abrir</a>
                             </Button>
+                            <Button size="sm" variant="outline" onClick={() => openSendLink(i)}>
+                              <Send className="w-3.5 h-3.5 mr-1" />Enviar link
+                            </Button>
                           </>
                         ) : (
                           <Button size="sm" variant="outline" disabled={asaasBusy === i.id} onClick={() => generateAsaasLink(i)}>
