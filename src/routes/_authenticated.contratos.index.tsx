@@ -14,6 +14,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, ChevronRight, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { syncContractToAsaas } from "@/lib/asaas/asaas.functions";
 import { brl, fmtDate } from "@/lib/format";
 import { generateInstallments } from "@/lib/installments";
 
