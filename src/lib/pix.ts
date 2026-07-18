@@ -1,4 +1,4 @@
-export const PIX_KEY = "marcosdedubiani@gmail.com";
+export const PIX_KEY = "juridico@mmlcobranca.com.br";
 export const PIX_KEY_LABEL = "E-mail";
 // Nome do recebedor (máx. 25 chars após sanitização — sem acentos/pontuação)
 export const PIX_MERCHANT_NAME = "PHOTOGENIC LUCILENE SILVA";
