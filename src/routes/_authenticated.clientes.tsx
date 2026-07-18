@@ -15,6 +15,8 @@ import { Plus, Mail, Phone, Trash2, Pencil, Send, Upload, FileText, X } from "lu
 import { toast } from "sonner";
 import { openWhatsAppComposer } from "@/lib/communication";
 import { maskDocument, maskPhone, unmask } from "@/lib/format";
+import { useServerFn } from "@tanstack/react-start";
+import { syncCustomerToAsaas } from "@/lib/asaas/asaas.functions";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({ meta: [{ title: "Clientes | Stillo Foto" }] }),
@@ -40,6 +42,7 @@ function ClientesPage() {
   const [docsFor, setDocsFor] = useState<any | null>(null);
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const [docsRefreshKey, setDocsRefreshKey] = useState(0);
+  const syncAsaas = useServerFn(syncCustomerToAsaas);
 
   async function lookupCep(rawCep: string) {
     const digits = unmask(rawCep);
@@ -121,11 +124,20 @@ function ClientesPage() {
       address_state: form.address_state?.trim().toUpperCase() || null,
       address_zip: unmask(form.address_zip) || null,
     } as any;
-    const { error } = editingId
-      ? await supabase.from("customers").update(payload).eq("id", editingId)
-      : await supabase.from("customers").insert(payload);
-    if (error) return toast.error(error.message);
+    const res = editingId
+      ? await supabase.from("customers").update(payload).eq("id", editingId).select().single()
+      : await supabase.from("customers").insert(payload).select().single();
+    if (res.error) return toast.error(res.error.message);
     toast.success(editingId ? "Cliente atualizado" : "Cliente cadastrado");
+    const savedId = (res.data as any)?.id ?? editingId;
+    if (savedId && payload.document) {
+      try {
+        await syncAsaas({ data: { customerId: savedId } });
+        toast.success("Cliente sincronizado com Asaas");
+      } catch (e: any) {
+        toast.warning(`Cliente salvo, mas Asaas falhou: ${e?.message || e}`);
+      }
+    }
     setOpen(false);
     setEditingId(null);
     setForm(emptyForm);
