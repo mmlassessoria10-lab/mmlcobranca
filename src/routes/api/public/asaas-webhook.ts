@@ -33,7 +33,7 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
         if (paidEvents.has(event)) {
           const paidAt = payment.paymentDate || payment.clientPaymentDate || payment.confirmedDate || new Date().toISOString().slice(0, 10);
           const iso = new Date(paidAt + (paidAt.length === 10 ? "T12:00:00" : "")).toISOString();
-          const patch: Record<string, any> = { status: "paga", paid_at: iso };
+          const patch: { status: string; paid_at: string; amount?: number } = { status: "paga", paid_at: iso };
           if (typeof payment.value === "number") patch.amount = payment.value;
           await supabaseAdmin.from("installments").update(patch).eq("asaas_payment_id", payment.id);
         } else if (refundEvents.has(event)) {
