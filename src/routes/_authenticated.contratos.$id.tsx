@@ -8,15 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { brl, fmtDate, installmentStatus } from "@/lib/format";
-import { ArrowLeft, CheckCircle2, MessageCircle, Mail, Trash2, ArrowRightLeft, Scale, Link2, Copy } from "lucide-react";
+import { ArrowLeft, CheckCircle2, MessageCircle, Mail, Trash2, ArrowRightLeft, Scale, Link2, Copy, Send, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import { buildInstallmentReminderWhatsAppMessage, openEmailComposer, openWhatsAppComposer } from "@/lib/communication";
 import { useServerFn } from "@tanstack/react-start";
-import { createAsaasPaymentForInstallment } from "@/lib/asaas/asaas.functions";
+import { createAsaasPaymentForInstallment, syncContractToAsaas } from "@/lib/asaas/asaas.functions";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
   head: () => ({ meta: [{ title: "Contrato | Stillo Foto" }] }),
@@ -32,7 +33,10 @@ function ContractDetail() {
   const canDelete = isAdmin;
   const canAsaas = isAdmin || hasRole("financeiro") || hasRole("cobranca");
   const generateAsaas = useServerFn(createAsaasPaymentForInstallment);
+  const syncAsaas = useServerFn(syncContractToAsaas);
   const [asaasBusy, setAsaasBusy] = useState<string | null>(null);
+  const [syncBusy, setSyncBusy] = useState(false);
+  const [sendLink, setSendLink] = useState<{ inst: any; message: string } | null>(null);
 
   async function generateAsaasLink(inst: any) {
     setAsaasBusy(inst.id);
@@ -46,6 +50,55 @@ function ContractDetail() {
     } finally {
       setAsaasBusy(null);
     }
+  }
+
+  async function syncAllToAsaas() {
+    if (!confirm("Exportar cliente e gerar cobranças Asaas para todas as parcelas em aberto sem link?")) return;
+    setSyncBusy(true);
+    try {
+      const res = await syncAsaas({ data: { contractId: id } });
+      const msg = `${res.created} cobrança(s) criada(s).` + (res.errors?.length ? ` ${res.errors.length} erro(s).` : "");
+      if (res.errors?.length) toast.warning(msg + " " + res.errors.slice(0, 2).join(" | "));
+      else toast.success(msg);
+      qc.invalidateQueries({ queryKey: ["contract", id] });
+    } catch (e: any) {
+      toast.error(e?.message || "Falha ao sincronizar com Asaas");
+    } finally {
+      setSyncBusy(false);
+    }
+  }
+
+  function openSendLink(inst: any) {
+    const name = data?.customers?.name || "";
+    const label = `${inst.number}/${data?.installments_count}`;
+    const defaultMsg =
+      `Olá ${name},\n\n` +
+      `Segue o link para pagamento da parcela ${label} — ${brl(inst.amount)} — vencimento ${fmtDate(inst.due_date)}.\n\n` +
+      `Pague por PIX, boleto ou cartão:\n${inst.asaas_invoice_url}\n\n` +
+      `Qualquer dúvida, estamos à disposição.`;
+    setSendLink({ inst, message: defaultMsg });
+  }
+
+  function sendLinkWhatsApp() {
+    if (!sendLink) return;
+    const phone = data?.customers?.phone ?? "";
+    let msg = sendLink.message;
+    if (!msg.includes(sendLink.inst.asaas_invoice_url)) msg = `${msg}\n\n${sendLink.inst.asaas_invoice_url}`;
+    if (!openWhatsAppComposer(phone, msg)) return toast.error("Cliente sem telefone cadastrado");
+    toast.success("WhatsApp aberto com a mensagem.");
+    setSendLink(null);
+  }
+
+  function sendLinkEmail() {
+    if (!sendLink) return;
+    const email = data?.customers?.email;
+    if (!email) return toast.error("Cliente sem e-mail cadastrado");
+    let msg = sendLink.message;
+    if (!msg.includes(sendLink.inst.asaas_invoice_url)) msg = `${msg}\n\n${sendLink.inst.asaas_invoice_url}`;
+    const subject = `Link de pagamento - Parcela ${sendLink.inst.number}/${data?.installments_count}`;
+    if (!openEmailComposer(email, subject, msg)) return toast.error("Cliente sem e-mail cadastrado");
+    toast.success("E-mail aberto com a mensagem.");
+    setSendLink(null);
   }
   const [payTarget, setPayTarget] = useState<any | null>(null);
   const [payDate, setPayDate] = useState<string>("");
@@ -219,6 +272,11 @@ function ContractDetail() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {canAsaas && (
+            <Button size="sm" variant="outline" onClick={syncAllToAsaas} disabled={syncBusy}>
+              <RefreshCcw className="w-4 h-4 mr-2" />{syncBusy ? "Sincronizando..." : "Sincronizar Asaas"}
+            </Button>
+          )}
           {(isAdmin || hasRole("financeiro")) && (
             <Button size="sm" variant="outline" onClick={() => setTransferOpen(true)}>
               <ArrowRightLeft className="w-4 h-4 mr-2" />Transferir
