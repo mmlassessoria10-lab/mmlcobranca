@@ -286,6 +286,22 @@ function ContractDetail() {
                           </Button>
                         </>
                       )}
+                      {!i.paid_at && canAsaas && (
+                        i.asaas_invoice_url ? (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(i.asaas_invoice_url); toast.success("Link copiado"); }}>
+                              <Copy className="w-3.5 h-3.5 mr-1" />Copiar
+                            </Button>
+                            <Button size="sm" variant="outline" asChild>
+                              <a href={i.asaas_invoice_url} target="_blank" rel="noreferrer"><Link2 className="w-3.5 h-3.5 mr-1" />Abrir</a>
+                            </Button>
+                          </>
+                        ) : (
+                          <Button size="sm" variant="outline" disabled={asaasBusy === i.id} onClick={() => generateAsaasLink(i)}>
+                            <Link2 className="w-3.5 h-3.5 mr-1" />{asaasBusy === i.id ? "Gerando..." : "Gerar Asaas"}
+                          </Button>
+                        )
+                      )}
                       {canPay && (
                         <Button
                           size="sm"
