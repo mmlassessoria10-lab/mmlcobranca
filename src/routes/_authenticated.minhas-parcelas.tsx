@@ -6,10 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { brl, fmtDate, installmentStatus } from "@/lib/format";
-import { Wallet, CheckCircle2, Clock, AlertTriangle, Copy, QrCode } from "lucide-react";
+import { Wallet, CheckCircle2, Clock, AlertTriangle, Copy, QrCode, Link2 } from "lucide-react";
 import { PIX_KEY, PIX_KEY_LABEL, copyPix } from "@/lib/pix";
 import { PixQrDialog } from "@/components/PixQrDialog";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { createAsaasPaymentForInstallment } from "@/lib/asaas/asaas.functions";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated/minhas-parcelas")({
   head: () => ({ meta: [{ title: "Minhas Parcelas | Stillo Foto" }] }),
@@ -18,6 +21,22 @@ export const Route = createFileRoute("/_authenticated/minhas-parcelas")({
 
 function MinhasParcelas() {
   const [pix, setPix] = useState<{ amount?: number; title?: string; txid?: string } | null>(null);
+  const [asaasBusy, setAsaasBusy] = useState<string | null>(null);
+  const generateAsaas = useServerFn(createAsaasPaymentForInstallment);
+  const qc = useQueryClient();
+  async function payWithAsaas(inst: any) {
+    if (inst.asaas_invoice_url) { window.open(inst.asaas_invoice_url, "_blank"); return; }
+    setAsaasBusy(inst.id);
+    try {
+      const res = await generateAsaas({ data: { installmentId: inst.id } });
+      window.open(res.invoiceUrl, "_blank");
+      qc.invalidateQueries({ queryKey: ["minhas-parcelas"] });
+    } catch (e: any) {
+      toast.error(e?.message || "Falha ao gerar link de pagamento");
+    } finally {
+      setAsaasBusy(null);
+    }
+  }
   const { data, isLoading } = useQuery({
     queryKey: ["minhas-parcelas"],
     queryFn: async () => {
@@ -28,7 +47,7 @@ function MinhasParcelas() {
       if (!customer) return { customer: null, contracts: [] as any[] };
       const { data: contracts } = await supabase
         .from("contracts")
-        .select("id,description,total_amount,installments_count,first_due_date,status,created_at,installments(id,number,due_date,amount,status,paid_at)")
+        .select("id,description,total_amount,installments_count,first_due_date,status,created_at,installments(id,number,due_date,amount,status,paid_at,asaas_invoice_url,asaas_payment_id)")
         .neq("legal_status", "juridico")
         .order("created_at", { ascending: false });
       return { customer, contracts: contracts ?? [] };
