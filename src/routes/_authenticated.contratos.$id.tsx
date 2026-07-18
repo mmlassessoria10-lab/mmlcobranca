@@ -426,6 +426,33 @@ function ContractDetail() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!sendLink} onOpenChange={(o) => !o && setSendLink(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Enviar link de pagamento</DialogTitle>
+            <DialogDescription>
+              {sendLink && <>Parcela {sendLink.inst.number} · {brl(sendLink.inst.amount)} · venc. {fmtDate(sendLink.inst.due_date)}</>}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Mensagem</Label>
+            <Textarea
+              rows={10}
+              value={sendLink?.message ?? ""}
+              onChange={(e) => setSendLink((s) => (s ? { ...s, message: e.target.value } : s))}
+            />
+            <p className="text-xs text-muted-foreground">
+              O link do Asaas é inserido automaticamente se você removê-lo do texto.
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setSendLink(null)}>Cancelar</Button>
+            <Button variant="outline" onClick={sendLinkEmail}><Mail className="w-4 h-4 mr-2" />E-mail</Button>
+            <Button onClick={sendLinkWhatsApp}><MessageCircle className="w-4 h-4 mr-2" />WhatsApp</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
         <DialogContent>
           <DialogHeader>
