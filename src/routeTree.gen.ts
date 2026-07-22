@@ -16,6 +16,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.
 import { Route as VTokenRouteImport } from './routes/v.$token'
 import { Route as NTokenRouteImport } from './routes/n.$token'
 import { Route as ATokenRouteImport } from './routes/a.$token'
+import { Route as AuthenticatedVendasRouteImport } from './routes/_authenticated.vendas'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated.relatorios'
 import { Route as AuthenticatedRelatorioSetorRouteImport } from './routes/_authenticated.relatorio-setor'
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated.notificacoes'
@@ -70,6 +71,11 @@ const ATokenRoute = ATokenRouteImport.update({
   id: '/a/$token',
   path: '/a/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedVendasRoute = AuthenticatedVendasRouteImport.update({
+  id: '/vendas',
+  path: '/vendas',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   id: '/relatorios',
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/relatorio-setor': typeof AuthenticatedRelatorioSetorRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/vendas': typeof AuthenticatedVendasRoute
   '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
   '/v/$token': typeof VTokenRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/relatorio-setor': typeof AuthenticatedRelatorioSetorRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/vendas': typeof AuthenticatedVendasRoute
   '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
   '/v/$token': typeof VTokenRoute
@@ -254,6 +262,7 @@ export interface FileRoutesById {
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/relatorio-setor': typeof AuthenticatedRelatorioSetorRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/_authenticated/vendas': typeof AuthenticatedVendasRoute
   '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
   '/v/$token': typeof VTokenRoute
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/relatorio-setor'
     | '/relatorios'
+    | '/vendas'
     | '/a/$token'
     | '/n/$token'
     | '/v/$token'
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/relatorio-setor'
     | '/relatorios'
+    | '/vendas'
     | '/a/$token'
     | '/n/$token'
     | '/v/$token'
@@ -340,6 +351,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notificacoes'
     | '/_authenticated/relatorio-setor'
     | '/_authenticated/relatorios'
+    | '/_authenticated/vendas'
     | '/a/$token'
     | '/n/$token'
     | '/v/$token'
@@ -417,6 +429,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/a/$token'
       preLoaderRoute: typeof ATokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/vendas': {
+      id: '/_authenticated/vendas'
+      path: '/vendas'
+      fullPath: '/vendas'
+      preLoaderRoute: typeof AuthenticatedVendasRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/relatorios': {
       id: '/_authenticated/relatorios'
@@ -591,6 +610,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedRelatorioSetorRoute: typeof AuthenticatedRelatorioSetorRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
+  AuthenticatedVendasRoute: typeof AuthenticatedVendasRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
@@ -608,6 +628,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedRelatorioSetorRoute: AuthenticatedRelatorioSetorRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
+  AuthenticatedVendasRoute: AuthenticatedVendasRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 

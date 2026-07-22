@@ -74,6 +74,19 @@ export function buildAgreementWhatsAppMessage(input: { customerName?: string; li
   );
 }
 
+export function publicSalesUrl(token: string) {
+  return `${PUBLIC_APP_ORIGIN}/v/${token}`;
+}
+
+export function buildSalesReceiptWhatsAppMessage(input: { customerName?: string; link: string }) {
+  const greeting = input.customerName ? `Olá ${input.customerName},\n\n` : "Olá,\n\n";
+  return withSignature(
+    `🧾 RECIBO DE VENDA\n\n${greeting}` +
+      "Segue o recibo com os itens, valores e o plano de parcelamento acordado. Para firmar o trato, acesse o link abaixo, confira as informações, envie uma selfie e realize a assinatura digital:\n\n" +
+      `${input.link}`,
+  );
+}
+
 export function buildInstallmentReminderWhatsAppMessage(input: {
   customerName?: string;
   contractDescription?: string;
