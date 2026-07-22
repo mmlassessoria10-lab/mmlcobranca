@@ -57,6 +57,8 @@ export type Database = {
           accepted_document: string | null
           accepted_ip: string | null
           accepted_name: string | null
+          accepted_selfie: string | null
+          accepted_signature: string | null
           accepted_user_agent: string | null
           body: string
           contract_id: string | null
@@ -71,6 +73,13 @@ export type Database = {
           interest_amount: number
           original_amount: number
           overdue_count: number
+          promissory_accepted_at: string | null
+          promissory_document: string | null
+          promissory_ip: string | null
+          promissory_name: string | null
+          promissory_selfie: string | null
+          promissory_signature: string | null
+          promissory_user_agent: string | null
           sent_by: string | null
           subject: string | null
           template_id: string | null
@@ -84,6 +93,8 @@ export type Database = {
           accepted_document?: string | null
           accepted_ip?: string | null
           accepted_name?: string | null
+          accepted_selfie?: string | null
+          accepted_signature?: string | null
           accepted_user_agent?: string | null
           body: string
           contract_id?: string | null
@@ -98,6 +109,13 @@ export type Database = {
           interest_amount?: number
           original_amount?: number
           overdue_count?: number
+          promissory_accepted_at?: string | null
+          promissory_document?: string | null
+          promissory_ip?: string | null
+          promissory_name?: string | null
+          promissory_selfie?: string | null
+          promissory_signature?: string | null
+          promissory_user_agent?: string | null
           sent_by?: string | null
           subject?: string | null
           template_id?: string | null
@@ -111,6 +129,8 @@ export type Database = {
           accepted_document?: string | null
           accepted_ip?: string | null
           accepted_name?: string | null
+          accepted_selfie?: string | null
+          accepted_signature?: string | null
           accepted_user_agent?: string | null
           body?: string
           contract_id?: string | null
@@ -125,6 +145,13 @@ export type Database = {
           interest_amount?: number
           original_amount?: number
           overdue_count?: number
+          promissory_accepted_at?: string | null
+          promissory_document?: string | null
+          promissory_ip?: string | null
+          promissory_name?: string | null
+          promissory_selfie?: string | null
+          promissory_signature?: string | null
+          promissory_user_agent?: string | null
           sent_by?: string | null
           subject?: string | null
           template_id?: string | null
