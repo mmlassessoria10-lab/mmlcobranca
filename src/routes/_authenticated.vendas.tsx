@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, Copy, MessageCircle, Eye, Ban, Send, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
-import { brl, fmtDate, maskDocument, maskPhone } from "@/lib/format";
+import { brl, fmtDate, maskDocument, maskPhone, maskCep, unmask } from "@/lib/format";
 import { upsertSalesReceipt, markSaleSent, cancelSale, getSaleSignedFiles } from "@/lib/sales/sales.functions";
 import { openWhatsAppComposer, buildSalesReceiptWhatsAppMessage, publicSalesUrl } from "@/lib/communication";
 
@@ -30,7 +30,21 @@ const emptyForm = () => ({
   id: null as string | null,
   customer_id: "" as string,
   customer_new: false,
-  snap: { name: "", document: "", email: "", phone: "", address: "" },
+  snap: {
+    name: "",
+    document: "",
+    email: "",
+    phone: "",
+    cep: "",
+    street: "",
+    number: "",
+    quadra: "",
+    neighborhood: "",
+    city: "",
+    state: "",
+    complement: "",
+    address: "",
+  },
   vendor_id: "none",
   receipt_number: "",
   items: [{ description: "", quantity: 1, unit_price: 0 }] as Item[],
@@ -98,8 +112,35 @@ function VendasPage() {
     if (!c) return;
     setForm((f) => ({
       ...f, customer_id: id, customer_new: false,
-      snap: { name: c.name || "", document: c.document || "", email: c.email || "", phone: c.phone || "", address: f.snap.address },
+      snap: {
+        ...f.snap,
+        name: c.name || "",
+        document: maskDocument(c.document || ""),
+        email: c.email || "",
+        phone: maskPhone(c.phone || ""),
+      },
     }));
+  }
+
+  async function lookupCep(raw: string) {
+    const cep = unmask(raw);
+    if (cep.length !== 8) return;
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const j = await r.json();
+      if (j?.erro) return;
+      setForm((f) => ({
+        ...f,
+        snap: {
+          ...f.snap,
+          street: j.logradouro || f.snap.street,
+          neighborhood: j.bairro || f.snap.neighborhood,
+          city: j.localidade || f.snap.city,
+          state: j.uf || f.snap.state,
+          complement: j.complemento || f.snap.complement,
+        },
+      }));
+    } catch {}
   }
 
   async function save() {
@@ -261,7 +302,29 @@ function VendasPage() {
                   <div><Label>Email</Label><Input value={form.snap.email} onChange={(e) => setForm((f) => ({ ...f, snap: { ...f.snap, email: e.target.value } }))} /></div>
                   <div><Label>Telefone</Label><Input value={form.snap.phone} onChange={(e) => setForm((f) => ({ ...f, snap: { ...f.snap, phone: maskPhone(e.target.value) } }))} /></div>
                 </div>
-                <div><Label>Endereço</Label><Input value={form.snap.address} onChange={(e) => setForm((f) => ({ ...f, snap: { ...f.snap, address: e.target.value } }))} /></div>
+                <div className="grid md:grid-cols-4 gap-3">
+                  <div>
+                    <Label>CEP</Label>
+                    <Input
+                      value={form.snap.cep}
+                      maxLength={9}
+                      onChange={(e) => {
+                        const v = maskCep(e.target.value);
+                        setForm((f) => ({ ...f, snap: { ...f.snap, cep: v } }));
+                        if (unmask(v).length === 8) lookupCep(v);
+                      }}
+                    />
+                  </div>
+                  <div className="md:col-span-2"><Label>Rua/Logradouro</Label><Input value={form.snap.street} onChange={(e) => setForm((f) => ({ ...f, snap: { ...f.snap, street: e.target.value } }))} /></div>
+                  <div><Label>Número</Label><Input value={form.snap.number} onChange={(e) => setForm((f) => ({ ...f, snap: { ...f.snap, number: e.target.value } }))} /></div>
+                </div>
+                <div className="grid md:grid-cols-4 gap-3">
+                  <div><Label>Quadra</Label><Input value={form.snap.quadra} onChange={(e) => setForm((f) => ({ ...f, snap: { ...f.snap, quadra: e.target.value } }))} /></div>
+                  <div><Label>Bairro</Label><Input value={form.snap.neighborhood} onChange={(e) => setForm((f) => ({ ...f, snap: { ...f.snap, neighborhood: e.target.value } }))} /></div>
+                  <div><Label>Cidade</Label><Input value={form.snap.city} onChange={(e) => setForm((f) => ({ ...f, snap: { ...f.snap, city: e.target.value } }))} /></div>
+                  <div><Label>UF</Label><Input value={form.snap.state} maxLength={2} onChange={(e) => setForm((f) => ({ ...f, snap: { ...f.snap, state: e.target.value.toUpperCase() } }))} /></div>
+                </div>
+                <div><Label>Complemento</Label><Input value={form.snap.complement} onChange={(e) => setForm((f) => ({ ...f, snap: { ...f.snap, complement: e.target.value } }))} /></div>
               </CardContent>
             </Card>
 
