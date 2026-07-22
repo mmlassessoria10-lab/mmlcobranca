@@ -14,10 +14,106 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, Copy, MessageCircle, Eye, Ban, Send, ShoppingBag } from "lucide-react";
+import { Printer } from "lucide-react";
 import { toast } from "sonner";
 import { brl, fmtDate, maskDocument, maskPhone, maskCep, unmask } from "@/lib/format";
 import { upsertSalesReceipt, markSaleSent, cancelSale, getSaleSignedFiles } from "@/lib/sales/sales.functions";
 import { openWhatsAppComposer, buildSalesReceiptWhatsAppMessage, publicSalesUrl } from "@/lib/communication";
+
+function printFilledReceipt(sale: any, files: { selfie_url: string | null; signature_url: string | null } | null) {
+  const snap = sale.customer_snapshot || {};
+  const items: any[] = sale.items || [];
+  const linha1 = [snap.street, snap.number && `nº ${snap.number}`, snap.quadra && `Qd. ${snap.quadra}`, snap.complement].filter(Boolean).join(", ");
+  const linha2 = [snap.neighborhood, [snap.city, snap.state].filter(Boolean).join("/"), snap.cep && `CEP ${snap.cep}`].filter(Boolean).join(" · ");
+  const rows = items.map((it) => `
+    <tr>
+      <td>${escapeHtml(it.description || "")}</td>
+      <td style="text-align:center">${Number(it.quantity || 0)}</td>
+      <td style="text-align:right">${brl(Number(it.unit_price || 0))}</td>
+      <td style="text-align:right">${brl(Number(it.quantity || 0) * Number(it.unit_price || 0))}</td>
+    </tr>`).join("");
+  const acceptedBlock = sale.accepted_at ? `
+    <div class="accept">
+      <h3>Aceite digital</h3>
+      <p><b>Assinado por:</b> ${escapeHtml(sale.accepted_name || "")} (${escapeHtml(sale.accepted_document || "")})</p>
+      <p><b>Data:</b> ${new Date(sale.accepted_at).toLocaleString("pt-BR")} · <b>IP:</b> ${escapeHtml(sale.accepted_ip || "—")}</p>
+      <div class="sig-grid">
+        <div><p class="lbl">Selfie</p>${files?.selfie_url ? `<img src="${files.selfie_url}" />` : `<p class="muted">Não disponível</p>`}</div>
+        <div><p class="lbl">Assinatura</p>${files?.signature_url ? `<img src="${files.signature_url}" style="background:#fff" />` : `<p class="muted">Não disponível</p>`}</div>
+      </div>
+    </div>` : `<p class="muted"><i>Recibo ainda não firmado pelo cliente.</i></p>`;
+
+  const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>
+  <title>Recibo ${escapeHtml(sale.receipt_number || sale.id.slice(0,8))}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; color:#111; margin:24px; font-size:12px; }
+    h1 { font-size:18px; margin:0 0 4px; }
+    h3 { font-size:13px; margin:16px 0 6px; border-bottom:1px solid #ddd; padding-bottom:2px; }
+    p { margin:2px 0; }
+    .muted { color:#666; }
+    table { width:100%; border-collapse:collapse; margin-top:6px; }
+    th, td { border:1px solid #ccc; padding:6px; font-size:12px; }
+    th { background:#f3f4f6; text-align:left; }
+    .totals { margin-top:8px; width:60%; margin-left:auto; }
+    .totals td { border:none; padding:2px 6px; }
+    .totals td:last-child { text-align:right; font-weight:600; }
+    .accept { margin-top:18px; border:1px solid #10b981; background:#ecfdf5; padding:10px; border-radius:6px; }
+    .sig-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px; }
+    .sig-grid img { max-width:100%; max-height:200px; border:1px solid #ccc; border-radius:4px; }
+    .lbl { font-size:11px; color:#555; margin-bottom:4px; }
+    .header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #111; padding-bottom:8px; margin-bottom:12px; }
+    @media print { .no-print{display:none} body{margin:12mm} }
+  </style></head><body>
+  <div class="header">
+    <div>
+      <h1>Recibo de Venda${sale.receipt_number ? ` Nº ${escapeHtml(sale.receipt_number)}` : ""}</h1>
+      <p class="muted">Emitido em ${new Date(sale.created_at).toLocaleString("pt-BR")}</p>
+    </div>
+    <div style="text-align:right">
+      <p><b>Status:</b> ${escapeHtml(sale.status)}</p>
+    </div>
+  </div>
+
+  <h3>Cliente</h3>
+  <p><b>${escapeHtml(snap.name || "")}</b>${snap.document ? ` · Doc: ${escapeHtml(snap.document)}` : ""}</p>
+  ${snap.email ? `<p>Email: ${escapeHtml(snap.email)}</p>` : ""}
+  ${snap.phone ? `<p>Telefone: ${escapeHtml(snap.phone)}</p>` : ""}
+  ${linha1 ? `<p>Endereço: ${escapeHtml(linha1)}</p>` : ""}
+  ${linha2 ? `<p>${escapeHtml(linha2)}</p>` : ""}
+
+  <h3>Itens</h3>
+  <table>
+    <thead><tr><th>Descrição</th><th style="width:60px">Qtd</th><th style="width:110px">Valor unit.</th><th style="width:110px">Subtotal</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  <table class="totals">
+    <tr><td>Subtotal:</td><td>${brl(sale.items_total)}</td></tr>
+    <tr><td>Desconto:</td><td>${brl(sale.discount)}</td></tr>
+    <tr><td>Entrada:</td><td>${brl(sale.entry_amount)}</td></tr>
+    <tr><td><b>Total:</b></td><td>${brl(sale.total_amount)}</td></tr>
+    <tr><td>Parcelamento:</td><td>${sale.installments_count}× ${brl(sale.installment_amount)}</td></tr>
+    <tr><td>1º vencimento:</td><td>${fmtDate(sale.first_due_date)}</td></tr>
+  </table>
+
+  ${sale.notes ? `<h3>Observações</h3><p>${escapeHtml(sale.notes).replace(/\n/g,"<br/>")}</p>` : ""}
+
+  ${acceptedBlock}
+
+  <p style="margin-top:24px" class="no-print"><button onclick="window.print()">Imprimir / Salvar PDF</button></p>
+  <script>window.addEventListener('load',()=>{setTimeout(()=>window.print(),400)});</script>
+  </body></html>`;
+  const w = window.open("", "_blank", "width=900,height=1000");
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
+function escapeHtml(s: string) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]!));
+}
 
 export const Route = createFileRoute("/_authenticated/vendas")({
   head: () => ({ meta: [{ title: "Vendas | Departamento de Vendas" }] }),
@@ -196,6 +292,14 @@ function VendasPage() {
     }
   }
 
+  async function printSale(sale: any) {
+    let files = viewFiles;
+    if (!files && (sale.selfie_path || sale.signature_path)) {
+      try { files = await getFiles({ data: { id: sale.id } }); setViewFiles(files); } catch {}
+    }
+    printFilledReceipt(sale, files);
+  }
+
   const filtered = (sales ?? []).filter((s: any) => {
     if (!search.trim()) return true;
     const t = search.toLowerCase();
@@ -250,6 +354,7 @@ function VendasPage() {
                   <TableCell>{fmtDate(s.created_at)}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button size="icon" variant="ghost" title="Visualizar" onClick={() => openView(s)}><Eye className="w-4 h-4" /></Button>
+                    <Button size="icon" variant="ghost" title="Imprimir / Arquivar" onClick={() => printSale(s)}><Printer className="w-4 h-4" /></Button>
                     {s.status !== "accepted" && s.status !== "canceled" && (
                       <>
                         <Button size="icon" variant="ghost" title="Copiar link" onClick={() => {
@@ -387,6 +492,11 @@ function VendasPage() {
           <DialogHeader><DialogTitle>Recibo {viewing?.receipt_number ? `Nº ${viewing.receipt_number}` : ""}</DialogTitle></DialogHeader>
           {viewing && (
             <div className="space-y-3 text-sm">
+              <div className="flex justify-end">
+                <Button size="sm" variant="outline" onClick={() => printSale(viewing)}>
+                  <Printer className="w-4 h-4 mr-1" /> Imprimir / Arquivar
+                </Button>
+              </div>
               <p><b>Cliente:</b> {viewing.customer_snapshot?.name} {viewing.customer_snapshot?.document ? `· ${viewing.customer_snapshot.document}` : ""}</p>
               <p><b>Status:</b> {statusBadge(viewing.status)}</p>
               <div className="rounded border divide-y">
