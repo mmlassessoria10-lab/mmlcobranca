@@ -354,6 +354,7 @@ function VendasPage() {
                   <TableCell>{fmtDate(s.created_at)}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button size="icon" variant="ghost" title="Visualizar" onClick={() => openView(s)}><Eye className="w-4 h-4" /></Button>
+                    <Button size="icon" variant="ghost" title="Imprimir / Arquivar" onClick={() => printSale(s)}><Printer className="w-4 h-4" /></Button>
                     {s.status !== "accepted" && s.status !== "canceled" && (
                       <>
                         <Button size="icon" variant="ghost" title="Copiar link" onClick={() => {
@@ -491,6 +492,11 @@ function VendasPage() {
           <DialogHeader><DialogTitle>Recibo {viewing?.receipt_number ? `Nº ${viewing.receipt_number}` : ""}</DialogTitle></DialogHeader>
           {viewing && (
             <div className="space-y-3 text-sm">
+              <div className="flex justify-end">
+                <Button size="sm" variant="outline" onClick={() => printSale(viewing)}>
+                  <Printer className="w-4 h-4 mr-1" /> Imprimir / Arquivar
+                </Button>
+              </div>
               <p><b>Cliente:</b> {viewing.customer_snapshot?.name} {viewing.customer_snapshot?.document ? `· ${viewing.customer_snapshot.document}` : ""}</p>
               <p><b>Status:</b> {statusBadge(viewing.status)}</p>
               <div className="rounded border divide-y">
