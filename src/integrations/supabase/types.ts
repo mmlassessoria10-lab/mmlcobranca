@@ -827,6 +827,12 @@ export type Database = {
           discount: number
           entry_amount: number
           first_due_date: string | null
+          guarantor: Json | null
+          guarantor_ip: string | null
+          guarantor_selfie_path: string | null
+          guarantor_signature_path: string | null
+          guarantor_signed_at: string | null
+          guarantor_user_agent: string | null
           id: string
           installment_amount: number
           installments_count: number
@@ -857,6 +863,12 @@ export type Database = {
           discount?: number
           entry_amount?: number
           first_due_date?: string | null
+          guarantor?: Json | null
+          guarantor_ip?: string | null
+          guarantor_selfie_path?: string | null
+          guarantor_signature_path?: string | null
+          guarantor_signed_at?: string | null
+          guarantor_user_agent?: string | null
           id?: string
           installment_amount?: number
           installments_count?: number
@@ -887,6 +899,12 @@ export type Database = {
           discount?: number
           entry_amount?: number
           first_due_date?: string | null
+          guarantor?: Json | null
+          guarantor_ip?: string | null
+          guarantor_selfie_path?: string | null
+          guarantor_signature_path?: string | null
+          guarantor_signed_at?: string | null
+          guarantor_user_agent?: string | null
           id?: string
           installment_amount?: number
           installments_count?: number
