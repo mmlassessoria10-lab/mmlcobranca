@@ -256,7 +256,17 @@ function PublicSale() {
               {snap.document && <p className="text-xs text-muted-foreground">Doc: {snap.document}</p>}
               {snap.email && <p className="text-xs text-muted-foreground">Email: {snap.email}</p>}
               {snap.phone && <p className="text-xs text-muted-foreground">Tel: {snap.phone}</p>}
-              {snap.address && <p className="text-xs text-muted-foreground">Endereço: {snap.address}</p>}
+              {(() => {
+                const linha1 = [snap.street, snap.number && `nº ${snap.number}`, snap.quadra && `Qd. ${snap.quadra}`, snap.complement].filter(Boolean).join(", ");
+                const linha2 = [snap.neighborhood, [snap.city, snap.state].filter(Boolean).join("/"), snap.cep && `CEP ${snap.cep}`].filter(Boolean).join(" · ");
+                return (
+                  <>
+                    {linha1 && <p className="text-xs text-muted-foreground">Endereço: {linha1}</p>}
+                    {linha2 && <p className="text-xs text-muted-foreground">{linha2}</p>}
+                    {!linha1 && !linha2 && snap.address && <p className="text-xs text-muted-foreground">Endereço: {snap.address}</p>}
+                  </>
+                );
+              })()}
             </div>
 
             <div>
