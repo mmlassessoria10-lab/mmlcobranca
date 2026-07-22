@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, ShieldCheck, Loader2, Handshake, AlertTriangle } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Loader2, Handshake, AlertTriangle, FileSignature, Camera, Pencil, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import headerAsset from "@/assets/mml-logo.jpeg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
+import { valorPorExtenso } from "@/lib/format";
 
 export const Route = createFileRoute("/a/$token")({
   head: () => {
@@ -39,6 +40,95 @@ function fmtDate(v?: string | null) {
   return d.toLocaleDateString("pt-BR");
 }
 
+function SignaturePad({ onChange }: { onChange: (dataUrl: string | null) => void }) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const drawing = useRef(false);
+  const dirty = useRef(false);
+  useEffect(() => {
+    const c = canvasRef.current; if (!c) return;
+    const ctx = c.getContext("2d"); if (!ctx) return;
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.strokeStyle = "#111827"; ctx.lineWidth = 2.2; ctx.lineCap = "round";
+  }, []);
+  function pos(e: any) {
+    const c = canvasRef.current!; const rect = c.getBoundingClientRect();
+    const t = e.touches?.[0];
+    const x = (t ? t.clientX : e.clientX) - rect.left;
+    const y = (t ? t.clientY : e.clientY) - rect.top;
+    return { x: x * (c.width / rect.width), y: y * (c.height / rect.height) };
+  }
+  function start(e: any) { e.preventDefault(); drawing.current = true; const { x, y } = pos(e); const ctx = canvasRef.current!.getContext("2d")!; ctx.beginPath(); ctx.moveTo(x, y); }
+  function move(e: any) { if (!drawing.current) return; e.preventDefault(); const { x, y } = pos(e); const ctx = canvasRef.current!.getContext("2d")!; ctx.lineTo(x, y); ctx.stroke(); dirty.current = true; }
+  function end() { if (!drawing.current) return; drawing.current = false; if (dirty.current) onChange(canvasRef.current!.toDataURL("image/png")); }
+  function clear() { const c = canvasRef.current!; const ctx = c.getContext("2d")!; ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height); dirty.current = false; onChange(null); }
+  return (
+    <div>
+      <div className="rounded-md border bg-white overflow-hidden">
+        <canvas ref={canvasRef} width={600} height={200} className="w-full h-40 touch-none"
+          onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end}
+          onTouchStart={start} onTouchMove={move} onTouchEnd={end} />
+      </div>
+      <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+        <span className="flex items-center gap-1"><Pencil className="w-3 h-3" /> Assine no espaço acima</span>
+        <button type="button" onClick={clear} className="text-primary hover:underline flex items-center gap-1"><RotateCcw className="w-3 h-3" /> Limpar</button>
+      </div>
+    </div>
+  );
+}
+
+function SelfieCapture({ onChange }: { onChange: (dataUrl: string | null) => void }) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
+  useEffect(() => () => { stream?.getTracks().forEach((t) => t.stop()); }, [stream]);
+  async function start() {
+    setStarting(true);
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
+      setStream(s);
+      setTimeout(() => { if (videoRef.current) { videoRef.current.srcObject = s; videoRef.current.play().catch(() => undefined); } }, 50);
+    } catch (e: any) { toast.error("Não foi possível acessar a câmera: " + (e?.message || e)); }
+    finally { setStarting(false); }
+  }
+  function capture() {
+    const v = videoRef.current; if (!v) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = v.videoWidth || 640; canvas.height = v.videoHeight || 480;
+    const ctx = canvas.getContext("2d")!; ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+    const url = canvas.toDataURL("image/jpeg", 0.7);
+    setPreview(url); onChange(url);
+    stream?.getTracks().forEach((t) => t.stop()); setStream(null);
+  }
+  function retake() { setPreview(null); onChange(null); start(); }
+  function onFile(f: File) { const r = new FileReader(); r.onload = () => { const url = r.result as string; setPreview(url); onChange(url); }; r.readAsDataURL(f); }
+  return (
+    <div className="space-y-2">
+      {preview ? (
+        <div className="space-y-2">
+          <img src={preview} alt="Selfie" className="w-40 h-40 object-cover rounded-md border" />
+          <Button variant="outline" size="sm" onClick={retake}><RotateCcw className="w-4 h-4 mr-1" /> Tirar novamente</Button>
+        </div>
+      ) : stream ? (
+        <div className="space-y-2">
+          <video ref={videoRef} className="w-full max-w-xs rounded-md border bg-black" playsInline muted />
+          <Button type="button" onClick={capture}><Camera className="w-4 h-4 mr-1" /> Capturar</Button>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" onClick={start} disabled={starting}>
+            <Camera className="w-4 h-4 mr-1" /> {starting ? "Abrindo câmera..." : "Abrir câmera"}
+          </Button>
+          <label className="inline-flex items-center gap-1 rounded-md border px-3 py-2 text-sm cursor-pointer hover:bg-accent">
+            Enviar foto
+            <input type="file" accept="image/*" capture="user" className="hidden" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+          </label>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PublicAgreement() {
   const { token } = Route.useParams();
   const [data, setData] = useState<any>(null);
@@ -47,6 +137,11 @@ function PublicAgreement() {
   const [doc, setDoc] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>(headerAsset.url);
+  const [pName, setPName] = useState("");
+  const [pDoc, setPDoc] = useState("");
+  const [pSignature, setPSignature] = useState<string | null>(null);
+  const [pSelfie, setPSelfie] = useState<string | null>(null);
+  const [pSubmitting, setPSubmitting] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -86,10 +181,32 @@ function PublicAgreement() {
     } finally { setSubmitting(false); }
   }
 
+  async function acceptPromissory() {
+    if (pName.trim().length < 3) return toast.error("Informe seu nome completo");
+    if (pDoc.trim().length < 5) return toast.error("Informe seu CPF/CNPJ");
+    if (!pSignature) return toast.error("Assine a nota promissória");
+    if (!pSelfie) return toast.error("Tire uma selfie segurando o documento");
+    setPSubmitting(true);
+    try {
+      const r = await fetch(`/api/public/agreements/${token}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "promissory", name: pName.trim(), document: pDoc.trim(), signature: pSignature, selfie: pSelfie }),
+      });
+      const j = await r.json();
+      if (!r.ok) return toast.error(j.error ?? "Falha ao registrar assinatura da nota promissória");
+      toast.success("Nota promissória assinada com sucesso");
+      load();
+    } finally { setPSubmitting(false); }
+  }
+
   if (loading) return <div className="min-h-screen grid place-items-center"><Loader2 className="w-6 h-6 animate-spin" /></div>;
   if (!data) return <div className="min-h-screen grid place-items-center p-6 text-center"><div><h1 className="text-xl font-semibold mb-2">Acordo não encontrado</h1><p className="text-muted-foreground text-sm">O link pode ter expirado ou é inválido.</p></div></div>;
 
   const accepted = !!data.accepted_at;
+  const promissoryAccepted = !!data.promissory_accepted_at;
+  const totalPromissoria = Number(data.total_amount ?? 0);
+  const cidade = "____________________";
+  const hoje = new Date().toLocaleDateString("pt-BR");
 
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
@@ -157,6 +274,80 @@ function PublicAgreement() {
             )}
           </CardContent>
         </Card>
+
+        {accepted && (
+          <Card className="border-primary/40">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2"><FileSignature className="w-5 h-5" /> Nota Promissória</CardTitle>
+              <p className="text-xs text-muted-foreground">Título executivo emitido em garantia do acordo firmado acima.</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-md border-2 border-dashed p-4 bg-background">
+                <div className="flex justify-between text-xs font-semibold uppercase tracking-wider mb-3">
+                  <span>Nota Promissória</span>
+                  <span>Nº {String(data.id).slice(0, 8).toUpperCase()}</span>
+                </div>
+                <div className="flex justify-between text-sm mb-4">
+                  <span><b>Vencimento:</b> {fmtDate(data.first_due_date)}</span>
+                  <span><b>Valor:</b> {brl(totalPromissoria)}</span>
+                </div>
+                <p className="text-sm leading-relaxed text-justify font-serif">
+                  No(s) vencimento(s) acima indicado(s), pagarei por esta única via de <b>NOTA PROMISSÓRIA</b> a
+                  {" "}<b>{"MML ASSESSORIA & COBRANÇA"}</b>, ou à sua ordem, a quantia de
+                  {" "}<b>{brl(totalPromissoria)}</b> ({valorPorExtenso(totalPromissoria)}),
+                  em moeda corrente deste país, referente ao acordo extrajudicial nº {String(data.id).slice(0, 8).toUpperCase()}
+                  {data.contracts?.contract_number ? `, contrato ${data.contracts.contract_number}` : ""}, a ser quitado em
+                  {" "}<b>{data.installments_count}</b> parcela(s) de <b>{brl(data.installment_amount)}</b>
+                  {Number(data.entry_amount) > 0 ? <>, com entrada de <b>{brl(data.entry_amount)}</b></> : null}.
+                  Pagável em {cidade}, {hoje}.
+                </p>
+                <div className="mt-4 grid md:grid-cols-2 gap-3 text-xs">
+                  <div><b>Emitente:</b> {data.customers?.name || pName || "—"}</div>
+                  <div><b>Documento:</b> {data.customers?.document || pDoc || "—"}</div>
+                </div>
+              </div>
+
+              {promissoryAccepted ? (
+                <div className="flex items-start gap-3 rounded-md border border-emerald-500/40 bg-emerald-500/10 p-4">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-semibold">Nota promissória assinada</p>
+                    <p className="text-muted-foreground">Por <b>{data.promissory_name}</b> ({data.promissory_document}) em {new Date(data.promissory_accepted_at).toLocaleString("pt-BR")}.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="rounded-md border border-blue-500/40 bg-blue-500/5 p-4 text-sm space-y-2">
+                    <p className="font-semibold text-blue-700 dark:text-blue-400">Como assinar a nota promissória:</p>
+                    <ol className="list-decimal ml-5 space-y-1 text-foreground">
+                      <li>Confira seus <b>dados</b> (nome e CPF/CNPJ) e os <b>valores</b> lançados acima.</li>
+                      <li>Preencha os campos <b>Nome completo</b> e <b>CPF/CNPJ</b>.</li>
+                      <li>Assine no <b>quadro de assinatura</b> usando o dedo (celular) ou o mouse (computador). Se errar, toque em <b>Limpar</b>.</li>
+                      <li>Tire uma <b>selfie segurando o documento oficial com foto</b> (RG ou CNH) próximo ao rosto, em local iluminado. Autorize o acesso à câmera quando solicitado — ou use o botão <b>Enviar foto</b>.</li>
+                      <li>Toque em <b>Assinar nota promissória</b> para concluir. Ficarão registrados nome, documento, assinatura, selfie, data/hora, IP e navegador como prova de emissão.</li>
+                    </ol>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div><Label>Nome completo do emitente</Label><Input value={pName} onChange={(e) => setPName(e.target.value)} maxLength={200} /></div>
+                    <div><Label>CPF/CNPJ do emitente</Label><Input value={pDoc} onChange={(e) => setPDoc(e.target.value)} maxLength={40} /></div>
+                  </div>
+                  <div>
+                    <Label>Assinatura do emitente</Label>
+                    <SignaturePad onChange={setPSignature} />
+                  </div>
+                  <div>
+                    <Label>Selfie com documento em mãos</Label>
+                    <SelfieCapture onChange={setPSelfie} />
+                  </div>
+                  <Button onClick={acceptPromissory} disabled={pSubmitting} className="w-full md:w-auto">
+                    {pSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSignature className="w-4 h-4 mr-2" />}
+                    Assinar nota promissória
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
