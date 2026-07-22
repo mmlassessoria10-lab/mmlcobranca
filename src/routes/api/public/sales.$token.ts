@@ -131,6 +131,7 @@ export const Route = createFileRoute("/api/public/sales/$token")({
         const contractDescription = `Venda ${sale.receipt_number || sale.id.slice(0, 8)}`;
         const financed = Math.max(0, Number(sale.total_amount) - Number(sale.entry_amount || 0));
         const count = Number(sale.installments_count || 1);
+        if (!sale.first_due_date) return json({ error: "missing_first_due_date" }, 400);
         const { data: contract, error: kErr } = await supabaseAdmin
           .from("contracts")
           .insert({
