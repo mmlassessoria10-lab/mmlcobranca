@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { brl, fmtDate } from "@/lib/format";
+import { brl, fmtDate, valorPorExtenso } from "@/lib/format";
 import { Handshake, Plus, Printer, Save, Trash2, FileText, RefreshCw, Send, MessageCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { buildAgreementWhatsAppMessage, openEmailComposer, openWhatsAppComposer, publicAcceptanceUrl } from "@/lib/communication";
@@ -106,6 +106,11 @@ function AcordosPage() {
       const { data } = await supabase.from("app_settings").select("value").eq("key", "agreement_logo").maybeSingle();
       return data;
     },
+  });
+
+  const { data: companyInfo } = useQuery({
+    queryKey: ["setting", "company_info"],
+    queryFn: async () => (await supabase.from("app_settings").select("value").eq("key", "company_info").maybeSingle()).data?.value ?? {},
   });
 
   const { data: customers } = useQuery({
@@ -251,6 +256,103 @@ function AcordosPage() {
 
   const agreementLogoUrl = (logoSetting?.value as any)?.url ?? headerAsset.url;
 
+  async function printPromissoryNote(a: any) {
+    let logoUrl = headerAsset.url;
+    try {
+      const { data } = await supabase.from("app_settings").select("value").eq("key", "agreement_logo").maybeSingle();
+      const u = (data?.value as any)?.url;
+      if (u) logoUrl = u;
+    } catch {}
+    const co: any = companyInfo ?? {};
+    const total = Number(a.total_amount || 0);
+    const parcelas = Number(a.installments_count || 1);
+    const parcela = Number(a.installment_amount || 0);
+    const firstDue = a.first_due_date ? fmtDate(a.first_due_date) : "—";
+    const emissao = new Date().toLocaleDateString("pt-BR");
+    const credor = co.name || "—";
+    const credorDoc = co.cnpj || co.document || "";
+    const credorEnd = [co.address, co.city, co.state].filter(Boolean).join(", ");
+    const devedor = a.customers?.name || a.accepted_name || "—";
+    const devedorDoc = a.customers?.document || a.accepted_document || "—";
+    const contrato = a.contracts?.contract_number ? `Nº ${a.contracts.contract_number}` : (a.contracts?.description ?? "—");
+    const sig = a.promissory_signature;
+    const selfie = a.promissory_selfie;
+    const assinadoEm = a.promissory_accepted_at ? new Date(a.promissory_accepted_at).toLocaleString("pt-BR") : null;
+
+    const w = window.open("", "_blank", "width=900,height=1000");
+    if (!w) return;
+    w.document.write(`<html><head><title>Nota Promissória - ${devedor}</title>
+      <style>
+        body{font-family:Georgia,serif;padding:32px;color:#111;max-width:780px;margin:0 auto;line-height:1.5;}
+        .logo{display:flex;justify-content:center;margin-bottom:16px;} .logo img{max-height:90px;}
+        h1{text-align:center;font-size:20px;letter-spacing:2px;margin:0 0 8px;}
+        .meta{display:flex;justify-content:space-between;font-size:12px;color:#555;margin-bottom:24px;border-bottom:1px solid #ddd;padding-bottom:8px;}
+        .box{border:2px solid #111;padding:20px;border-radius:6px;}
+        .valor{font-size:22px;font-weight:bold;text-align:right;margin-bottom:12px;}
+        p{margin:8px 0;text-align:justify;}
+        .parcelas{background:#f8f8f8;padding:10px;border-radius:4px;font-size:13px;margin-top:12px;}
+        .assinatura{margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:32px;}
+        .assinatura .linha{border-top:1px solid #111;padding-top:6px;text-align:center;font-size:12px;}
+        .selfie{margin-top:24px;text-align:center;}
+        .selfie img{max-height:180px;border:1px solid #ccc;padding:4px;}
+        .sig-img{max-height:80px;}
+        .digital{margin-top:24px;padding:12px;background:#f0f9ff;border-left:4px solid #0284c7;font-size:12px;}
+        @media print{ .noprint{display:none;} }
+      </style></head><body>
+      <div class="logo"><img src="${logoUrl}" alt="Logo"/></div>
+      <h1>NOTA PROMISSÓRIA</h1>
+      <div class="meta">
+        <span>Nº ${(a.id || "").toString().slice(0,8).toUpperCase()}</span>
+        <span>Contrato: ${contrato}</span>
+        <span>Emissão: ${emissao}</span>
+      </div>
+      <div class="box">
+        <div class="valor">R$ ${total.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        <p>Aos <b>${firstDue}</b> e demais vencimentos subsequentes, pagarei(emos) por esta única via de <b>NOTA PROMISSÓRIA</b> a
+        <b>${credor}</b>${credorDoc ? `, inscrita no CNPJ/CPF sob nº <b>${credorDoc}</b>` : ""}${credorEnd ? `, com endereço em ${credorEnd}` : ""},
+        ou à sua ordem, a quantia de <b>R$ ${total.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}</b>
+        (<i>${valorPorExtenso(total)}</i>), em moeda corrente nacional, referente ao acordo extrajudicial firmado nesta data.</p>
+
+        <p><b>Emitente/Devedor:</b> ${devedor}, portador do documento <b>${devedorDoc}</b>.</p>
+
+        <div class="parcelas">
+          <b>Parcelamento:</b> ${parcelas}× de R$ ${parcela.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}
+          &nbsp;·&nbsp; <b>Primeiro vencimento:</b> ${firstDue}
+          ${Number(a.entry_amount||0) > 0 ? `&nbsp;·&nbsp; <b>Entrada:</b> R$ ${Number(a.entry_amount).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}` : ""}
+        </div>
+
+        <p style="margin-top:16px;">Em caso de inadimplemento, incidirão multa de 2% (dois por cento), juros de mora de 1% ao mês e correção monetária,
+        além das despesas de cobrança judicial ou extrajudicial, sem prejuízo do vencimento antecipado das demais parcelas.</p>
+
+        ${assinadoEm ? `
+        <div class="digital">
+          <b>✓ Assinatura digital confirmada em ${assinadoEm}</b><br/>
+          Nome: ${a.promissory_name || devedor}<br/>
+          Documento: ${a.promissory_document || devedorDoc}<br/>
+          ${a.promissory_ip ? `IP: ${a.promissory_ip}<br/>` : ""}
+          ${a.promissory_user_agent ? `Dispositivo: ${a.promissory_user_agent}` : ""}
+        </div>` : ""}
+
+        <div class="assinatura">
+          <div>
+            ${sig ? `<img class="sig-img" src="${sig}" alt="Assinatura"/>` : ""}
+            <div class="linha">${devedor}<br/>Emitente / Devedor</div>
+          </div>
+          <div>
+            <div class="linha">${credor}<br/>Credor / Beneficiário</div>
+          </div>
+        </div>
+
+        ${selfie ? `<div class="selfie"><p><b>Selfie de confirmação:</b></p><img src="${selfie}" alt="Selfie"/></div>` : ""}
+      </div>
+      <div class="noprint" style="text-align:center;margin-top:24px;">
+        <button onclick="window.print()" style="padding:8px 24px;font-size:14px;cursor:pointer;">Imprimir</button>
+      </div>
+      </body></html>`);
+    w.document.close();
+    setTimeout(() => w.print(), 700);
+  }
+
   function sendAgreementWhatsApp(customer: any, token?: string | null) {
     if (!token) return toast.error("Registre o acordo antes para gerar o link de aceite");
     const link = publicAcceptanceUrl("a", token);
@@ -354,16 +456,21 @@ function AcordosPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      {!a.accepted_at ? (
-                        <div className="flex justify-end gap-1">
-                          <Button size="sm" variant="outline" onClick={() => sendAgreementWhatsApp(a.customers, a.accept_token)}>
-                            <MessageCircle className="w-4 h-4 mr-1" /> WhatsApp
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => sendAgreementEmail(a.customers, a.subject, a.accept_token)}>
-                            <Mail className="w-4 h-4 mr-1" /> E-mail
-                          </Button>
-                        </div>
-                      ) : "—"}
+                      <div className="flex justify-end gap-1 flex-wrap">
+                        {!a.accepted_at && (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => sendAgreementWhatsApp(a.customers, a.accept_token)}>
+                              <MessageCircle className="w-4 h-4 mr-1" /> WhatsApp
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => sendAgreementEmail(a.customers, a.subject, a.accept_token)}>
+                              <Mail className="w-4 h-4 mr-1" /> E-mail
+                            </Button>
+                          </>
+                        )}
+                        <Button size="sm" variant="outline" onClick={() => printPromissoryNote(a)}>
+                          <Printer className="w-4 h-4 mr-1" /> Nota Promissória
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
