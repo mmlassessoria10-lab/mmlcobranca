@@ -209,10 +209,14 @@ function PublicSale() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), document: doc.trim(), selfie, signature }),
       });
-      const j = await r.json();
-      if (!r.ok) return toast.error(j.error ?? "Falha ao registrar aceite");
+      const text = await r.text();
+      let j: any = {};
+      try { j = text ? JSON.parse(text) : {}; } catch { /* non-JSON */ }
+      if (!r.ok) return toast.error(j.error ?? `Falha ao registrar aceite (HTTP ${r.status})`);
       toast.success("Venda firmada com sucesso!");
       load();
+    } catch (e: any) {
+      toast.error("Erro de conexão: " + (e?.message || e));
     } finally { setSubmitting(false); }
   }
 
