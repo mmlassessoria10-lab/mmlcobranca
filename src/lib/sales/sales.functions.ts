@@ -11,6 +11,14 @@ type SaleInput = {
     email?: string;
     phone?: string;
     address?: string;
+    cep?: string;
+    street?: string;
+    number?: string;
+    quadra?: string;
+    neighborhood?: string;
+    city?: string;
+    state?: string;
+    complement?: string;
   };
   vendor_id?: string | null;
   items: SaleItem[];

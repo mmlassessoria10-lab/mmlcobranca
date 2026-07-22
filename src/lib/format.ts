@@ -127,3 +127,8 @@ export function maskPhone(value: string | null | undefined): string {
     .replace(/(\d{2})(\d)/, "($1) $2")
     .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
 }
+
+export function maskCep(value: string | null | undefined): string {
+  const digits = unmask(value).slice(0, 8);
+  return digits.replace(/(\d{5})(\d{1,3})$/, "$1-$2");
+}
