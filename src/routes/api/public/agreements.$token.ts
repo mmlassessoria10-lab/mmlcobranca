@@ -63,7 +63,7 @@ export const Route = createFileRoute("/api/public/agreements/$token")({
           if (signature) update.accepted_signature = signature;
           if (selfie) update.accepted_selfie = selfie;
         }
-        const { error } = await supabaseAdmin.from("agreements").update(update).eq("id", current.id);
+        const { error } = await (supabaseAdmin.from("agreements") as any).update(update).eq("id", current.id);
         if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
         return Response.json({ ok: true }, { headers: CORS });
       },
