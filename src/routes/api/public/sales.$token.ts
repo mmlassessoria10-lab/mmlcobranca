@@ -134,7 +134,7 @@ export const Route = createFileRoute("/api/public/sales/$token")({
         const { data: contract, error: kErr } = await supabaseAdmin
           .from("contracts")
           .insert({
-            customer_id: customerId,
+            customer_id: customerId!,
             description: contractDescription,
             total_amount: financed,
             installments_count: count,

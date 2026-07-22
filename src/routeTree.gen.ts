@@ -31,6 +31,7 @@ import { Route as AuthenticatedAcordosRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated.contratos.index'
 import { Route as ApiPublicAsaasWebhookRouteImport } from './routes/api/public/asaas-webhook'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated.contratos.$id'
+import { Route as ApiPublicSalesTokenRouteImport } from './routes/api/public/sales.$token'
 import { Route as ApiPublicNotificationsTokenRouteImport } from './routes/api/public/notifications.$token'
 import { Route as ApiPublicHooksRemindersRouteImport } from './routes/api/public/hooks/reminders'
 import { Route as ApiPublicAgreementsTokenRouteImport } from './routes/api/public/agreements.$token'
@@ -151,6 +152,11 @@ const AuthenticatedContratosIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedContratosRoute,
   } as any)
+const ApiPublicSalesTokenRoute = ApiPublicSalesTokenRouteImport.update({
+  id: '/api/public/sales/$token',
+  path: '/api/public/sales/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicNotificationsTokenRoute =
   ApiPublicNotificationsTokenRouteImport.update({
     id: '/api/public/notifications/$token',
@@ -194,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
+  '/api/public/sales/$token': typeof ApiPublicSalesTokenRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -219,6 +226,7 @@ export interface FileRoutesByTo {
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
+  '/api/public/sales/$token': typeof ApiPublicSalesTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -247,6 +255,7 @@ export interface FileRoutesById {
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
+  '/api/public/sales/$token': typeof ApiPublicSalesTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -275,6 +284,7 @@ export interface FileRouteTypes {
     | '/api/public/agreements/$token'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
+    | '/api/public/sales/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -300,6 +310,7 @@ export interface FileRouteTypes {
     | '/api/public/agreements/$token'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
+    | '/api/public/sales/$token'
   id:
     | '__root__'
     | '/_authenticated'
@@ -327,6 +338,7 @@ export interface FileRouteTypes {
     | '/api/public/agreements/$token'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
+    | '/api/public/sales/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -339,6 +351,7 @@ export interface RootRouteChildren {
   ApiPublicAgreementsTokenRoute: typeof ApiPublicAgreementsTokenRoute
   ApiPublicHooksRemindersRoute: typeof ApiPublicHooksRemindersRoute
   ApiPublicNotificationsTokenRoute: typeof ApiPublicNotificationsTokenRoute
+  ApiPublicSalesTokenRoute: typeof ApiPublicSalesTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -497,6 +510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratosIdRouteImport
       parentRoute: typeof AuthenticatedContratosRoute
     }
+    '/api/public/sales/$token': {
+      id: '/api/public/sales/$token'
+      path: '/api/public/sales/$token'
+      fullPath: '/api/public/sales/$token'
+      preLoaderRoute: typeof ApiPublicSalesTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/notifications/$token': {
       id: '/api/public/notifications/$token'
       path: '/api/public/notifications/$token'
@@ -585,6 +605,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAgreementsTokenRoute: ApiPublicAgreementsTokenRoute,
   ApiPublicHooksRemindersRoute: ApiPublicHooksRemindersRoute,
   ApiPublicNotificationsTokenRoute: ApiPublicNotificationsTokenRoute,
+  ApiPublicSalesTokenRoute: ApiPublicSalesTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
