@@ -576,6 +576,18 @@ function AcordosPage() {
           <div className="flex gap-2 mt-3 flex-wrap">
             <Button variant="outline" onClick={refreshPreview}><RefreshCw className="w-4 h-4 mr-2" /> Atualizar prévia</Button>
             <Button variant="outline" onClick={printPreview} disabled={!previewBody}><Printer className="w-4 h-4 mr-2" /> Imprimir / PDF</Button>
+            <Button variant="outline" disabled={!previewBody} onClick={() => printPromissoryNote({
+              id: lastSaved?.id ?? "PREVIA",
+              customers: selectedCustomer,
+              contracts: (contracts ?? []).find((c: any) => c.id === selContract) ?? null,
+              total_amount: entryN + installmentValue * parcelsN,
+              installments_count: parcelsN,
+              installment_amount: installmentValue,
+              entry_amount: entryN,
+              first_due_date: firstDue,
+            })}>
+              <FileText className="w-4 h-4 mr-2" /> Nota Promissória
+            </Button>
               <Button variant="outline" disabled={!previewBody} onClick={() => sendAgreementWhatsApp(selectedCustomer, lastSaved?.accept_token)}>
               <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
             </Button>
