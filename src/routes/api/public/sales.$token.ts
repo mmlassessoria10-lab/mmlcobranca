@@ -56,7 +56,7 @@ export const Route = createFileRoute("/api/public/sales/$token")({
         const [saleRes, companyRes] = await Promise.all([
           supabaseAdmin
             .from("sales_receipts")
-            .select("id,receipt_number,customer_snapshot,items,items_total,discount,entry_amount,installments_count,installment_amount,first_due_date,total_amount,notes,status,sent_at,accepted_at,accepted_name,accepted_document,created_at")
+            .select("id,receipt_number,customer_snapshot,items,items_total,discount,entry_amount,installments_count,installment_amount,first_due_date,total_amount,notes,status,sent_at,accepted_at,accepted_name,accepted_document,created_at,guarantor,guarantor_signed_at")
             .eq("accept_token", params.token)
             .maybeSingle(),
           supabaseAdmin.from("app_settings").select("value").eq("key", "company_info").maybeSingle(),
@@ -68,6 +68,7 @@ export const Route = createFileRoute("/api/public/sales/$token")({
       POST: async ({ params, request }) => {
         let body: any = {};
         try { body = await request.json(); } catch { return json({ error: "invalid_body" }, 400); }
+        const kind = String(body.kind ?? "buyer");
         const name = String(body.name ?? "").trim();
         const document = String(body.document ?? "").trim();
         const selfie = String(body.selfie ?? "");
@@ -85,13 +86,39 @@ export const Route = createFileRoute("/api/public/sales/$token")({
           .eq("accept_token", params.token)
           .maybeSingle();
         if (fetchErr || !sale) return json({ error: "not_found" }, 404);
-        if (sale.accepted_at) return json({ ok: true, already: true });
 
         const selfieBytes = dataUrlToBytes(selfie);
         const signatureBytes = dataUrlToBytes(signature);
         if (!selfieBytes || !signatureBytes) return json({ error: "invalid_image" }, 400);
         if (selfieBytes.bytes.length > 5 * 1024 * 1024) return json({ error: "selfie_too_large" }, 400);
         if (signatureBytes.bytes.length > 1 * 1024 * 1024) return json({ error: "signature_too_large" }, 400);
+
+        const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+        const ua = request.headers.get("user-agent")?.slice(0, 500) ?? null;
+
+        if (kind === "guarantor") {
+          if (!sale.guarantor) return json({ error: "no_guarantor" }, 400);
+          if ((sale as any).guarantor_signed_at) return json({ ok: true, already: true });
+          const gSelfiePath = `${sale.id}/guarantor-selfie.${extFromContentType(selfieBytes.contentType)}`;
+          const gSigPath = `${sale.id}/guarantor-signature.${extFromContentType(signatureBytes.contentType)}`;
+          const gu1 = await supabaseAdmin.storage.from("sales-signatures").upload(gSelfiePath, selfieBytes.bytes, { contentType: selfieBytes.contentType, upsert: true });
+          if (gu1.error) return json({ error: gu1.error.message }, 500);
+          const gu2 = await supabaseAdmin.storage.from("sales-signatures").upload(gSigPath, signatureBytes.bytes, { contentType: signatureBytes.contentType, upsert: true });
+          if (gu2.error) return json({ error: gu2.error.message }, 500);
+          const merged = { ...(sale.guarantor as any), name, document };
+          const { error: gErr } = await (supabaseAdmin as any).from("sales_receipts").update({
+            guarantor: merged,
+            guarantor_selfie_path: gSelfiePath,
+            guarantor_signature_path: gSigPath,
+            guarantor_signed_at: new Date().toISOString(),
+            guarantor_ip: ip,
+            guarantor_user_agent: ua,
+          }).eq("id", sale.id);
+          if (gErr) return json({ error: gErr.message }, 500);
+          return json({ ok: true, kind: "guarantor" });
+        }
+
+        if (sale.accepted_at) return json({ ok: true, already: true });
 
         const selfiePath = `${sale.id}/selfie.${extFromContentType(selfieBytes.contentType)}`;
         const signaturePath = `${sale.id}/signature.${extFromContentType(signatureBytes.contentType)}`;
@@ -104,9 +131,6 @@ export const Route = createFileRoute("/api/public/sales/$token")({
           contentType: signatureBytes.contentType, upsert: true,
         });
         if (up2.error) return json({ error: up2.error.message }, 500);
-
-        const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
-        const ua = request.headers.get("user-agent")?.slice(0, 500) ?? null;
 
         // Auto-create customer if none linked
         let customerId = sale.customer_id as string | null;
