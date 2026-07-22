@@ -18,6 +18,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { openWhatsAppComposer } from "@/lib/communication";
 import headerAsset from "@/assets/mml-logo.jpeg.asset.json";
+import { Textarea } from "@/components/ui/textarea";
 
 const ROLES: AppRole[] = ["admin", "financeiro", "cobranca"];
 
@@ -35,6 +36,25 @@ function AdminPage() {
   const [invNote, setInvNote] = useState("");
   const [creating, setCreating] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [company, setCompany] = useState<any>({ name: "", document: "", address: "", phone: "", email: "" });
+  const [savingCompany, setSavingCompany] = useState(false);
+
+  useQuery({
+    queryKey: ["setting", "company_info"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings").select("value").eq("key", "company_info").maybeSingle();
+      if (data?.value) setCompany({ name: "", document: "", address: "", phone: "", email: "", ...(data.value as any) });
+      return data;
+    },
+  });
+
+  async function saveCompany() {
+    setSavingCompany(true);
+    const { error } = await supabase.from("app_settings").upsert({ key: "company_info", value: company });
+    setSavingCompany(false);
+    if (error) return toast.error(error.message);
+    toast.success("Dados da empresa salvos");
+  }
 
   const { data: agreementLogo } = useQuery({
     queryKey: ["setting", "agreement_logo"],
@@ -181,6 +201,21 @@ function AdminPage() {
           >
             <Copy className="w-4 h-4 mr-2" /> Copiar chave PIX
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Dados da empresa (recibos de venda)</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">Estas informações aparecem no cabeçalho dos recibos enviados ao cliente para assinatura digital.</p>
+          <div className="grid md:grid-cols-2 gap-3">
+            <div><Label>Razão social / Nome</Label><Input value={company.name} onChange={(e) => setCompany({ ...company, name: e.target.value })} /></div>
+            <div><Label>CNPJ</Label><Input value={company.document} onChange={(e) => setCompany({ ...company, document: e.target.value })} /></div>
+            <div><Label>Telefone</Label><Input value={company.phone} onChange={(e) => setCompany({ ...company, phone: e.target.value })} /></div>
+            <div><Label>E-mail</Label><Input value={company.email} onChange={(e) => setCompany({ ...company, email: e.target.value })} /></div>
+          </div>
+          <div><Label>Endereço</Label><Textarea rows={2} value={company.address} onChange={(e) => setCompany({ ...company, address: e.target.value })} /></div>
+          <Button onClick={saveCompany} disabled={savingCompany}>{savingCompany ? "Salvando..." : "Salvar dados da empresa"}</Button>
         </CardContent>
       </Card>
 
