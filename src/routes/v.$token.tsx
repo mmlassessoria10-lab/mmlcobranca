@@ -186,6 +186,11 @@ function PublicSale() {
   const [selfie, setSelfie] = useState<string | null>(null);
   const [signature, setSignature] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [gName, setGName] = useState("");
+  const [gDoc, setGDoc] = useState("");
+  const [gSelfie, setGSelfie] = useState<string | null>(null);
+  const [gSignature, setGSignature] = useState<string | null>(null);
+  const [gSubmitting, setGSubmitting] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -220,6 +225,29 @@ function PublicSale() {
     } finally { setSubmitting(false); }
   }
 
+  async function acceptGuarantor() {
+    if (gName.trim().length < 3) return toast.error("Informe o nome do avalista");
+    if (gDoc.trim().length < 5) return toast.error("Informe o CPF/CNPJ do avalista");
+    if (!gSelfie) return toast.error("Avalista precisa tirar a selfie");
+    if (!gSignature) return toast.error("Avalista precisa assinar");
+    setGSubmitting(true);
+    try {
+      const r = await fetch(`/api/public/sales/${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "guarantor", name: gName.trim(), document: gDoc.trim(), selfie: gSelfie, signature: gSignature }),
+      });
+      const text = await r.text();
+      let j: any = {};
+      try { j = text ? JSON.parse(text) : {}; } catch {}
+      if (!r.ok) return toast.error(j.error ?? `Falha ao registrar aval (HTTP ${r.status})`);
+      toast.success("Aval firmado com sucesso!");
+      load();
+    } catch (e: any) {
+      toast.error("Erro de conexão: " + (e?.message || e));
+    } finally { setGSubmitting(false); }
+  }
+
   if (loading) return <div className="min-h-screen grid place-items-center"><Loader2 className="w-6 h-6 animate-spin" /></div>;
   if (!payload?.sale) return <div className="min-h-screen grid place-items-center p-6 text-center"><div><h1 className="text-xl font-semibold mb-2">Recibo não encontrado</h1><p className="text-muted-foreground text-sm">O link pode ter expirado ou é inválido.</p></div></div>;
 
@@ -230,6 +258,15 @@ function PublicSale() {
   const accepted = !!sale.accepted_at;
   const noteValue = Math.max(0, Number(sale.total_amount || 0) - Number(sale.entry_amount || 0)) || Number(sale.total_amount || 0);
   const companyDocument = company.document || company.cnpj || "";
+  const guarantor = sale.guarantor || null;
+  const guarantorSigned = !!sale.guarantor_signed_at;
+  const gAddr = guarantor ? [guarantor.street, guarantor.number && `nº ${guarantor.number}`, guarantor.quadra && `Qd. ${guarantor.quadra}`, guarantor.neighborhood, [guarantor.city, guarantor.state].filter(Boolean).join("/"), guarantor.cep && `CEP ${guarantor.cep}`].filter(Boolean).join(", ") : "";
+
+  useEffect(() => {
+    if (guarantor && !gName) setGName(guarantor.name || "");
+    if (guarantor && !gDoc) setGDoc(maskDocument(guarantor.document || ""));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guarantor?.name, guarantor?.document]);
 
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
@@ -350,6 +387,48 @@ function PublicSale() {
             </div>
           </CardContent>
         </Card>
+
+        {guarantor && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Avalista / Fiador solidário</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                {guarantorSigned
+                  ? "Aval já firmado digitalmente."
+                  : "O avalista precisa assinar digitalmente e tirar uma selfie para garantir solidariamente esta nota promissória."}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="rounded-md border bg-muted/40 p-3">
+                <p><b>Nome:</b> {guarantor.name || "—"}{guarantor.document ? ` · Doc: ${guarantor.document}` : ""}</p>
+                {(guarantor.phone || guarantor.email) && <p>{[guarantor.phone && `Tel: ${guarantor.phone}`, guarantor.email && `E-mail: ${guarantor.email}`].filter(Boolean).join(" · ")}</p>}
+                {gAddr && <p>Endereço: {gAddr}</p>}
+              </div>
+              {guarantorSigned ? (
+                <div className="flex items-start gap-3 rounded-md border border-emerald-500/40 bg-emerald-500/10 p-4">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-semibold">Avalista firmou digitalmente</p>
+                    <p className="text-muted-foreground">em {new Date(sale.guarantor_signed_at).toLocaleString("pt-BR")}.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div><Label>Nome do avalista</Label><Input value={gName} onChange={(e) => setGName(e.target.value)} maxLength={200} /></div>
+                    <div><Label>CPF/CNPJ do avalista</Label><Input value={gDoc} onChange={(e) => setGDoc(maskDocument(e.target.value))} maxLength={40} /></div>
+                  </div>
+                  <div><Label>Selfie do avalista</Label><SelfieCapture onChange={setGSelfie} /></div>
+                  <div><Label>Assinatura do avalista</Label><SignaturePad onChange={setGSignature} /></div>
+                  <Button onClick={acceptGuarantor} disabled={gSubmitting} className="w-full md:w-auto" variant="secondary">
+                    {gSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                    Firmar aval
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> Firmar o trato</CardTitle></CardHeader>
