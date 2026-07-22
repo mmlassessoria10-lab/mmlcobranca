@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, ShieldCheck, Loader2, Camera, Pencil, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { brl, fmtDate, maskDocument } from "@/lib/format";
+import { brl, fmtDate, maskDocument, valorPorExtenso } from "@/lib/format";
 
 export const Route = createFileRoute("/v/$token")({
   head: () => ({
@@ -228,6 +228,8 @@ function PublicSale() {
   const snap = sale.customer_snapshot || {};
   const items: any[] = sale.items || [];
   const accepted = !!sale.accepted_at;
+  const noteValue = Math.max(0, Number(sale.total_amount || 0) - Number(sale.entry_amount || 0)) || Number(sale.total_amount || 0);
+  const companyDocument = company.document || company.cnpj || "";
 
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
@@ -306,6 +308,50 @@ function PublicSale() {
         </Card>
 
         <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Nota Promissória vinculada à venda</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Esta nota será firmada junto com o recibo usando a mesma assinatura digital e selfie de confirmação.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="rounded-md border p-4 bg-card">
+              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Emitente / Devedor</p>
+                  <p className="font-semibold">{snap.name || sale.accepted_name}</p>
+                  {(snap.document || sale.accepted_document) && (
+                    <p className="text-xs text-muted-foreground">Documento: {snap.document || sale.accepted_document}</p>
+                  )}
+                </div>
+                <div className="md:text-right">
+                  <p className="text-xs text-muted-foreground">Valor da promissória</p>
+                  <p className="text-lg font-bold text-primary">{brl(noteValue)}</p>
+                  <p className="text-xs text-muted-foreground">{valorPorExtenso(noteValue)}</p>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-2 md:grid-cols-2">
+                <div className="rounded border bg-muted/40 p-2">
+                  <p className="text-xs text-muted-foreground">Credor / Beneficiário</p>
+                  <p className="font-medium">{company.name || "Empresa credora"}</p>
+                  {companyDocument && <p className="text-xs text-muted-foreground">CNPJ/CPF: {companyDocument}</p>}
+                </div>
+                <div className="rounded border bg-muted/40 p-2">
+                  <p className="text-xs text-muted-foreground">Parcelamento</p>
+                  <p className="font-medium">{sale.installments_count}× de {brl(sale.installment_amount)}</p>
+                  <p className="text-xs text-muted-foreground">Primeiro vencimento: {fmtDate(sale.first_due_date)}</p>
+                </div>
+              </div>
+
+              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+                O(a) devedor(a) promete pagar ao credor, ou à sua ordem, o valor acima, vinculado ao recibo de venda e ao parcelamento apresentado. Em caso de atraso, poderão incidir multa, juros, correção monetária e despesas de cobrança, conforme condições do trato firmado.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><ShieldCheck className="w-5 h-5" /> Firmar o trato</CardTitle></CardHeader>
           <CardContent>
             {accepted ? (
@@ -319,7 +365,7 @@ function PublicSale() {
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Ao firmar você reconhece a venda e concorda com o parcelamento acima. Serão registrados nome, documento, selfie, assinatura, IP e navegador como comprovação.
+                  Ao firmar você reconhece a venda, concorda com o parcelamento e assina também a nota promissória vinculada acima. Serão registrados nome, documento, selfie, assinatura, IP e navegador como comprovação.
                 </p>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div><Label>Nome completo</Label><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} /></div>

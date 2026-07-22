@@ -14,9 +14,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, Copy, MessageCircle, Eye, Ban, Send, ShoppingBag } from "lucide-react";
-import { Printer } from "lucide-react";
+import { FileText, Printer } from "lucide-react";
 import { toast } from "sonner";
-import { brl, fmtDate, maskDocument, maskPhone, maskCep, unmask } from "@/lib/format";
+import { brl, fmtDate, maskDocument, maskPhone, maskCep, unmask, valorPorExtenso } from "@/lib/format";
 import { upsertSalesReceipt, markSaleSent, cancelSale, getSaleSignedFiles } from "@/lib/sales/sales.functions";
 import { openWhatsAppComposer, buildSalesReceiptWhatsAppMessage, publicSalesUrl } from "@/lib/communication";
 
@@ -117,6 +117,104 @@ function printFilledReceipt(
   <p style="margin-top:24px" class="no-print"><button onclick="window.print()">Imprimir / Salvar PDF</button></p>
   <script>window.addEventListener('load',()=>{setTimeout(()=>window.print(),400)});</script>
   </body></html>`;
+  const w = window.open("", "_blank", "width=900,height=1000");
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
+function printSalesPromissoryNote(
+  sale: any,
+  files: { selfie_url: string | null; signature_url: string | null } | null,
+  company: any = {},
+  contractNumber: string | null = null,
+) {
+  const snap = sale.customer_snapshot || {};
+  const total = Number(sale.total_amount || 0);
+  const entry = Number(sale.entry_amount || 0);
+  const noteValue = Math.max(0, total - entry) || total;
+  const parcelas = Number(sale.installments_count || 1);
+  const parcela = Number(sale.installment_amount || 0);
+  const firstDue = sale.first_due_date ? fmtDate(sale.first_due_date) : "—";
+  const emissao = sale.accepted_at ? fmtDate(sale.accepted_at) : fmtDate(sale.created_at);
+  const credor = company?.name || "Credor";
+  const credorDoc = company?.cnpj || company?.document || "";
+  const credorEnd = [company?.address, company?.city, company?.state].filter(Boolean).join(", ");
+  const devedor = sale.accepted_name || snap.name || "Devedor";
+  const devedorDoc = sale.accepted_document || snap.document || "—";
+  const contrato = contractNumber || sale.receipt_number || sale.id?.slice?.(0, 8) || "—";
+  const acceptedAt = sale.accepted_at ? new Date(sale.accepted_at).toLocaleString("pt-BR") : null;
+
+  const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>
+    <title>Nota Promissória ${escapeHtml(contrato)}</title>
+    <style>
+      * { box-sizing: border-box; }
+      body{font-family:Georgia,serif;padding:32px;color:#111;max-width:820px;margin:0 auto;line-height:1.5;}
+      .logo{display:flex;justify-content:center;margin-bottom:16px;} .logo img{max-height:86px;max-width:260px;object-fit:contain;}
+      h1{text-align:center;font-size:20px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;}
+      .meta{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#555;margin-bottom:24px;border-bottom:1px solid #ddd;padding-bottom:8px;}
+      .box{border:2px solid #111;padding:20px;border-radius:6px;}
+      .valor{font-size:22px;font-weight:bold;text-align:right;margin-bottom:12px;}
+      p{margin:8px 0;text-align:justify;}
+      .parcelas{background:#f8f8f8;padding:10px;border-radius:4px;font-size:13px;margin-top:12px;}
+      .assinatura{margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:end;}
+      .assinatura .linha{border-top:1px solid #111;padding-top:6px;text-align:center;font-size:12px;min-height:42px;}
+      .sig-img{max-height:82px;max-width:100%;object-fit:contain;display:block;margin:0 auto 6px;background:#fff;}
+      .selfie{margin-top:24px;text-align:center;}
+      .selfie img{max-height:180px;border:1px solid #ccc;padding:4px;}
+      .digital{margin-top:24px;padding:12px;background:#f0f9ff;border-left:4px solid #0284c7;font-size:12px;}
+      .muted{color:#666;}
+      @media print{ .noprint{display:none;} body{padding:14mm;} }
+    </style></head><body>
+    ${company?.logo_url ? `<div class="logo"><img src="${escapeHtml(company.logo_url)}" alt="Logo"/></div>` : ""}
+    <h1>Nota Promissória</h1>
+    <div class="meta">
+      <span>Nº ${escapeHtml((sale.receipt_number || sale.id?.slice?.(0, 8) || "").toString().toUpperCase())}</span>
+      <span>Contrato/Recibo: ${escapeHtml(contrato)}</span>
+      <span>Emissão: ${escapeHtml(emissao)}</span>
+    </div>
+    <div class="box">
+      <div class="valor">${brl(noteValue)}</div>
+      <p>Pelo presente título, o(a) emitente/devedor(a) <b>${escapeHtml(devedor)}</b>, portador(a) do documento <b>${escapeHtml(devedorDoc)}</b>, promete pagar a <b>${escapeHtml(credor)}</b>${credorDoc ? `, inscrita no CNPJ/CPF sob nº <b>${escapeHtml(credorDoc)}</b>` : ""}${credorEnd ? `, com endereço em ${escapeHtml(credorEnd)}` : ""}, ou à sua ordem, a quantia de <b>${brl(noteValue)}</b> (<i>${escapeHtml(valorPorExtenso(noteValue))}</i>), em moeda corrente nacional.</p>
+
+      <p>Esta nota promissória está vinculada ao recibo de venda/acordo de parcelamento informado acima, reconhecido pelo(a) devedor(a) por assinatura digital e selfie de confirmação.</p>
+
+      <div class="parcelas">
+        <b>Parcelamento:</b> ${parcelas}× de ${brl(parcela)}
+        &nbsp;·&nbsp; <b>Primeiro vencimento:</b> ${escapeHtml(firstDue)}
+        ${entry > 0 ? `&nbsp;·&nbsp; <b>Entrada:</b> ${brl(entry)}` : ""}
+        &nbsp;·&nbsp; <b>Total da venda:</b> ${brl(total)}
+      </div>
+
+      <p style="margin-top:16px;">Em caso de inadimplemento, incidirão multa de 2% (dois por cento), juros de mora de 1% ao mês e correção monetária, além das despesas de cobrança judicial ou extrajudicial, sem prejuízo do vencimento antecipado das demais parcelas.</p>
+
+      ${acceptedAt ? `
+      <div class="digital">
+        <b>✓ Aceite digital confirmado em ${escapeHtml(acceptedAt)}</b><br/>
+        Nome: ${escapeHtml(sale.accepted_name || devedor)}<br/>
+        Documento: ${escapeHtml(sale.accepted_document || devedorDoc)}<br/>
+        ${sale.accepted_ip ? `IP: ${escapeHtml(sale.accepted_ip)}<br/>` : ""}
+        ${sale.accepted_user_agent ? `Dispositivo: ${escapeHtml(sale.accepted_user_agent)}` : ""}
+      </div>` : `<p class="muted"><i>Nota ainda aguardando aceite digital do cliente.</i></p>`}
+
+      <div class="assinatura">
+        <div>
+          ${files?.signature_url ? `<img class="sig-img" src="${files.signature_url}" alt="Assinatura digital"/>` : ""}
+          <div class="linha">${escapeHtml(devedor)}<br/>Emitente / Devedor</div>
+        </div>
+        <div>
+          <div class="linha">${escapeHtml(credor)}<br/>Credor / Beneficiário</div>
+        </div>
+      </div>
+
+      ${files?.selfie_url ? `<div class="selfie"><p><b>Selfie de confirmação:</b></p><img src="${files.selfie_url}" alt="Selfie"/></div>` : ""}
+    </div>
+    <div class="noprint" style="text-align:center;margin-top:24px;">
+      <button onclick="window.print()" style="padding:8px 24px;font-size:14px;cursor:pointer;">Imprimir / Salvar PDF</button>
+    </div>
+    <script>window.addEventListener('load',()=>{setTimeout(()=>window.print(),500)});</script>
+    </body></html>`;
   const w = window.open("", "_blank", "width=900,height=1000");
   if (!w) return;
   w.document.open();
@@ -314,12 +412,31 @@ function VendasPage() {
     if (!files && (sale.selfie_path || sale.signature_path)) {
       try { files = await getFiles({ data: { id: sale.id } }); setViewFiles(files); } catch {}
     }
-    let contractNumber: string | null = null;
-    if (sale.customer_id) {
-      const { data } = await supabase.from("customers").select("contract_number").eq("id", sale.customer_id).maybeSingle();
-      contractNumber = (data as any)?.contract_number ?? null;
-    }
+    const contractNumber = await getContractNumberForSale(sale);
     printFilledReceipt(sale, files, companyInfo || {}, contractNumber);
+  }
+
+  async function printPromissory(sale: any) {
+    let files = viewFiles;
+    if (!files && (sale.selfie_path || sale.signature_path)) {
+      try { files = await getFiles({ data: { id: sale.id } }); setViewFiles(files); } catch {}
+    }
+    const contractNumber = await getContractNumberForSale(sale);
+    printSalesPromissoryNote(sale, files, companyInfo || {}, contractNumber);
+  }
+
+  async function getContractNumberForSale(sale: any) {
+    try {
+      if (sale.contract_id) {
+        const { data } = await (supabase as any).from("contracts").select("contract_number,description").eq("id", sale.contract_id).maybeSingle();
+        if (data?.contract_number || data?.description) return data.contract_number || data.description;
+      }
+      if (sale.customer_id) {
+        const { data } = await supabase.from("customers").select("contract_number").eq("id", sale.customer_id).maybeSingle();
+        if ((data as any)?.contract_number) return (data as any).contract_number;
+      }
+    } catch {}
+    return sale.receipt_number || null;
   }
 
   const filtered = (sales ?? []).filter((s: any) => {
@@ -377,6 +494,7 @@ function VendasPage() {
                   <TableCell className="text-right space-x-1">
                     <Button size="icon" variant="ghost" title="Visualizar" onClick={() => openView(s)}><Eye className="w-4 h-4" /></Button>
                     <Button size="icon" variant="ghost" title="Imprimir / Arquivar" onClick={() => printSale(s)}><Printer className="w-4 h-4" /></Button>
+                    <Button size="icon" variant="ghost" title="Nota promissória" onClick={() => printPromissory(s)}><FileText className="w-4 h-4" /></Button>
                     {s.status !== "accepted" && s.status !== "canceled" && (
                       <>
                         <Button size="icon" variant="ghost" title="Copiar link" onClick={() => {
@@ -514,9 +632,12 @@ function VendasPage() {
           <DialogHeader><DialogTitle>Recibo {viewing?.receipt_number ? `Nº ${viewing.receipt_number}` : ""}</DialogTitle></DialogHeader>
           {viewing && (
             <div className="space-y-3 text-sm">
-              <div className="flex justify-end">
+              <div className="flex flex-wrap justify-end gap-2">
                 <Button size="sm" variant="outline" onClick={() => printSale(viewing)}>
                   <Printer className="w-4 h-4 mr-1" /> Imprimir / Arquivar
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => printPromissory(viewing)}>
+                  <FileText className="w-4 h-4 mr-1" /> Nota Promissória
                 </Button>
               </div>
               <p><b>Cliente:</b> {viewing.customer_snapshot?.name} {viewing.customer_snapshot?.document ? `· ${viewing.customer_snapshot.document}` : ""}</p>
@@ -531,6 +652,12 @@ function VendasPage() {
               </div>
               <p><b>Total:</b> {brl(viewing.total_amount)} · <b>Entrada:</b> {brl(viewing.entry_amount)} · <b>Parcelas:</b> {viewing.installments_count}× {brl(viewing.installment_amount)}</p>
               <p><b>1º vencimento:</b> {fmtDate(viewing.first_due_date)}</p>
+              <div className="rounded-md border bg-muted/40 p-3">
+                <p className="font-semibold flex items-center gap-2"><FileText className="w-4 h-4" /> Nota Promissória</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  A nota promissória é gerada com o saldo parcelado ({brl(Math.max(0, Number(viewing.total_amount || 0) - Number(viewing.entry_amount || 0)) || Number(viewing.total_amount || 0))}) e fica vinculada ao aceite digital do recibo.
+                </p>
+              </div>
               <p className="text-xs text-muted-foreground break-all">
                 Link público: {publicSalesUrl(viewing.accept_token)}
               </p>
