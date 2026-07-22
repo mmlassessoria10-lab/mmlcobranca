@@ -2,6 +2,20 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type SaleItem = { description: string; quantity: number; unit_price: number };
+type Guarantor = {
+  name?: string;
+  document?: string;
+  phone?: string;
+  email?: string;
+  cep?: string;
+  street?: string;
+  number?: string;
+  quadra?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  complement?: string;
+};
 type SaleInput = {
   id?: string;
   customer_id?: string | null;
@@ -21,6 +35,7 @@ type SaleInput = {
     complement?: string;
   };
   vendor_id?: string | null;
+  guarantor?: Guarantor | null;
   items: SaleItem[];
   discount: number;
   entry_amount: number;
@@ -59,6 +74,9 @@ export const upsertSalesReceipt = createServerFn({ method: "POST" })
       vendor_id: data.vendor_id || null,
       customer_id: data.customer_id || null,
       customer_snapshot: data.customer_snapshot,
+      guarantor: data.guarantor && (data.guarantor.name?.trim() || data.guarantor.document?.trim())
+        ? data.guarantor
+        : null,
       items: data.items,
       items_total: itemsTotal,
       discount: Number(data.discount || 0),
