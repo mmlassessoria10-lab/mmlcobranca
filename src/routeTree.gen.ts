@@ -13,8 +13,10 @@ import { Route as TrustRouteImport } from './routes/trust'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
+import { Route as VTokenRouteImport } from './routes/v.$token'
 import { Route as NTokenRouteImport } from './routes/n.$token'
 import { Route as ATokenRouteImport } from './routes/a.$token'
+import { Route as AuthenticatedVendasRouteImport } from './routes/_authenticated.vendas'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated.relatorios'
 import { Route as AuthenticatedRelatorioSetorRouteImport } from './routes/_authenticated.relatorio-setor'
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated.notificacoes'
@@ -31,6 +33,7 @@ import { Route as AuthenticatedAcordosRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedContratosIndexRouteImport } from './routes/_authenticated.contratos.index'
 import { Route as ApiPublicAsaasWebhookRouteImport } from './routes/api/public/asaas-webhook'
 import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenticated.contratos.$id'
+import { Route as ApiPublicSalesTokenRouteImport } from './routes/api/public/sales.$token'
 import { Route as ApiPublicNotificationsTokenRouteImport } from './routes/api/public/notifications.$token'
 import { Route as ApiPublicHooksRemindersRouteImport } from './routes/api/public/hooks/reminders'
 import { Route as ApiPublicAgreementsTokenRouteImport } from './routes/api/public/agreements.$token'
@@ -54,6 +57,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const VTokenRoute = VTokenRouteImport.update({
+  id: '/v/$token',
+  path: '/v/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NTokenRoute = NTokenRouteImport.update({
   id: '/n/$token',
   path: '/n/$token',
@@ -63,6 +71,11 @@ const ATokenRoute = ATokenRouteImport.update({
   id: '/a/$token',
   path: '/a/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedVendasRoute = AuthenticatedVendasRouteImport.update({
+  id: '/vendas',
+  path: '/vendas',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   id: '/relatorios',
@@ -151,6 +164,11 @@ const AuthenticatedContratosIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedContratosRoute,
   } as any)
+const ApiPublicSalesTokenRoute = ApiPublicSalesTokenRouteImport.update({
+  id: '/api/public/sales/$token',
+  path: '/api/public/sales/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicNotificationsTokenRoute =
   ApiPublicNotificationsTokenRouteImport.update({
     id: '/api/public/notifications/$token',
@@ -186,14 +204,17 @@ export interface FileRoutesByFullPath {
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/relatorio-setor': typeof AuthenticatedRelatorioSetorRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/vendas': typeof AuthenticatedVendasRoute
   '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
+  '/v/$token': typeof VTokenRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
   '/contratos/': typeof AuthenticatedContratosIndexRoute
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
+  '/api/public/sales/$token': typeof ApiPublicSalesTokenRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -210,8 +231,10 @@ export interface FileRoutesByTo {
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/relatorio-setor': typeof AuthenticatedRelatorioSetorRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/vendas': typeof AuthenticatedVendasRoute
   '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
+  '/v/$token': typeof VTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
@@ -219,6 +242,7 @@ export interface FileRoutesByTo {
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
+  '/api/public/sales/$token': typeof ApiPublicSalesTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -238,8 +262,10 @@ export interface FileRoutesById {
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/relatorio-setor': typeof AuthenticatedRelatorioSetorRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/_authenticated/vendas': typeof AuthenticatedVendasRoute
   '/a/$token': typeof ATokenRoute
   '/n/$token': typeof NTokenRoute
+  '/v/$token': typeof VTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/contratos/$id': typeof AuthenticatedContratosIdRoute
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
@@ -247,6 +273,7 @@ export interface FileRoutesById {
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
+  '/api/public/sales/$token': typeof ApiPublicSalesTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -267,14 +294,17 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/relatorio-setor'
     | '/relatorios'
+    | '/vendas'
     | '/a/$token'
     | '/n/$token'
+    | '/v/$token'
     | '/contratos/$id'
     | '/api/public/asaas-webhook'
     | '/contratos/'
     | '/api/public/agreements/$token'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
+    | '/api/public/sales/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -291,8 +321,10 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/relatorio-setor'
     | '/relatorios'
+    | '/vendas'
     | '/a/$token'
     | '/n/$token'
+    | '/v/$token'
     | '/'
     | '/contratos/$id'
     | '/api/public/asaas-webhook'
@@ -300,6 +332,7 @@ export interface FileRouteTypes {
     | '/api/public/agreements/$token'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
+    | '/api/public/sales/$token'
   id:
     | '__root__'
     | '/_authenticated'
@@ -318,8 +351,10 @@ export interface FileRouteTypes {
     | '/_authenticated/notificacoes'
     | '/_authenticated/relatorio-setor'
     | '/_authenticated/relatorios'
+    | '/_authenticated/vendas'
     | '/a/$token'
     | '/n/$token'
+    | '/v/$token'
     | '/_authenticated/'
     | '/_authenticated/contratos/$id'
     | '/api/public/asaas-webhook'
@@ -327,6 +362,7 @@ export interface FileRouteTypes {
     | '/api/public/agreements/$token'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
+    | '/api/public/sales/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -335,10 +371,12 @@ export interface RootRouteChildren {
   TrustRoute: typeof TrustRoute
   ATokenRoute: typeof ATokenRoute
   NTokenRoute: typeof NTokenRoute
+  VTokenRoute: typeof VTokenRoute
   ApiPublicAsaasWebhookRoute: typeof ApiPublicAsaasWebhookRoute
   ApiPublicAgreementsTokenRoute: typeof ApiPublicAgreementsTokenRoute
   ApiPublicHooksRemindersRoute: typeof ApiPublicHooksRemindersRoute
   ApiPublicNotificationsTokenRoute: typeof ApiPublicNotificationsTokenRoute
+  ApiPublicSalesTokenRoute: typeof ApiPublicSalesTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -371,6 +409,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/v/$token': {
+      id: '/v/$token'
+      path: '/v/$token'
+      fullPath: '/v/$token'
+      preLoaderRoute: typeof VTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/n/$token': {
       id: '/n/$token'
       path: '/n/$token'
@@ -384,6 +429,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/a/$token'
       preLoaderRoute: typeof ATokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/vendas': {
+      id: '/_authenticated/vendas'
+      path: '/vendas'
+      fullPath: '/vendas'
+      preLoaderRoute: typeof AuthenticatedVendasRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/relatorios': {
       id: '/_authenticated/relatorios'
@@ -497,6 +549,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContratosIdRouteImport
       parentRoute: typeof AuthenticatedContratosRoute
     }
+    '/api/public/sales/$token': {
+      id: '/api/public/sales/$token'
+      path: '/api/public/sales/$token'
+      fullPath: '/api/public/sales/$token'
+      preLoaderRoute: typeof ApiPublicSalesTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/notifications/$token': {
       id: '/api/public/notifications/$token'
       path: '/api/public/notifications/$token'
@@ -551,6 +610,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedRelatorioSetorRoute: typeof AuthenticatedRelatorioSetorRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
+  AuthenticatedVendasRoute: typeof AuthenticatedVendasRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
@@ -568,6 +628,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedRelatorioSetorRoute: AuthenticatedRelatorioSetorRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
+  AuthenticatedVendasRoute: AuthenticatedVendasRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
@@ -581,21 +642,13 @@ const rootRouteChildren: RootRouteChildren = {
   TrustRoute: TrustRoute,
   ATokenRoute: ATokenRoute,
   NTokenRoute: NTokenRoute,
+  VTokenRoute: VTokenRoute,
   ApiPublicAsaasWebhookRoute: ApiPublicAsaasWebhookRoute,
   ApiPublicAgreementsTokenRoute: ApiPublicAgreementsTokenRoute,
   ApiPublicHooksRemindersRoute: ApiPublicHooksRemindersRoute,
   ApiPublicNotificationsTokenRoute: ApiPublicNotificationsTokenRoute,
+  ApiPublicSalesTokenRoute: ApiPublicSalesTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

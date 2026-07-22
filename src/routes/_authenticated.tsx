@@ -17,7 +17,7 @@ import {
   Mail,
   Handshake,
 } from "lucide-react";
-import { Truck } from "lucide-react";
+import { Truck, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import photogenicLogo from "@/assets/mml-logo.jpeg.asset.json";
 
@@ -30,6 +30,7 @@ const nav: { to: string; label: string; icon: any; adminOnly?: boolean; hideForR
   { to: "/", label: "Dashboard", icon: LayoutDashboard, hideForCliente: true },
   { to: "/clientes", label: "Clientes", icon: Users, hideForCliente: true },
   { to: "/contratos", label: "Contratos", icon: FileText, hideForCliente: true },
+  { to: "/vendas", label: "Vendas", icon: ShoppingBag, hideForCliente: true },
   { to: "/importar", label: "Importar Excel", icon: Upload, adminOnly: true },
   { to: "/comissoes", label: "Comissões", icon: Percent, hideForCliente: true },
   { to: "/juridico", label: "Depto Jurídico", icon: Scale, adminOnly: true },

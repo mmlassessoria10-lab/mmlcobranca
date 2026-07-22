@@ -785,6 +785,121 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_receipts: {
+        Row: {
+          accept_token: string
+          accepted_at: string | null
+          accepted_document: string | null
+          accepted_ip: string | null
+          accepted_name: string | null
+          accepted_user_agent: string | null
+          contract_id: string | null
+          created_at: string
+          customer_id: string | null
+          customer_snapshot: Json
+          discount: number
+          entry_amount: number
+          first_due_date: string | null
+          id: string
+          installment_amount: number
+          installments_count: number
+          items: Json
+          items_total: number
+          notes: string | null
+          receipt_number: string | null
+          selfie_path: string | null
+          seller_user_id: string | null
+          sent_at: string | null
+          signature_path: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+          vendor_id: string | null
+        }
+        Insert: {
+          accept_token?: string
+          accepted_at?: string | null
+          accepted_document?: string | null
+          accepted_ip?: string | null
+          accepted_name?: string | null
+          accepted_user_agent?: string | null
+          contract_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_snapshot?: Json
+          discount?: number
+          entry_amount?: number
+          first_due_date?: string | null
+          id?: string
+          installment_amount?: number
+          installments_count?: number
+          items?: Json
+          items_total?: number
+          notes?: string | null
+          receipt_number?: string | null
+          selfie_path?: string | null
+          seller_user_id?: string | null
+          sent_at?: string | null
+          signature_path?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          accept_token?: string
+          accepted_at?: string | null
+          accepted_document?: string | null
+          accepted_ip?: string | null
+          accepted_name?: string | null
+          accepted_user_agent?: string | null
+          contract_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_snapshot?: Json
+          discount?: number
+          entry_amount?: number
+          first_due_date?: string | null
+          id?: string
+          installment_amount?: number
+          installments_count?: number
+          items?: Json
+          items_total?: number
+          notes?: string | null
+          receipt_number?: string | null
+          selfie_path?: string | null
+          seller_user_id?: string | null
+          sent_at?: string | null
+          signature_path?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_receipts_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_receipts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_receipts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           active: boolean
