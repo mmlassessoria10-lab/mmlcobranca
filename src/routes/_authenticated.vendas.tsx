@@ -20,7 +20,12 @@ import { brl, fmtDate, maskDocument, maskPhone, maskCep, unmask } from "@/lib/fo
 import { upsertSalesReceipt, markSaleSent, cancelSale, getSaleSignedFiles } from "@/lib/sales/sales.functions";
 import { openWhatsAppComposer, buildSalesReceiptWhatsAppMessage, publicSalesUrl } from "@/lib/communication";
 
-function printFilledReceipt(sale: any, files: { selfie_url: string | null; signature_url: string | null } | null) {
+function printFilledReceipt(
+  sale: any,
+  files: { selfie_url: string | null; signature_url: string | null } | null,
+  company: any = {},
+  contractNumber: string | null = null,
+) {
   const snap = sale.customer_snapshot || {};
   const items: any[] = sale.items || [];
   const linha1 = [snap.street, snap.number && `nº ${snap.number}`, snap.quadra && `Qd. ${snap.quadra}`, snap.complement].filter(Boolean).join(", ");
@@ -66,11 +71,19 @@ function printFilledReceipt(sale: any, files: { selfie_url: string | null; signa
     @media print { .no-print{display:none} body{margin:12mm} }
   </style></head><body>
   <div class="header">
-    <div>
-      <h1>Recibo de Venda${sale.receipt_number ? ` Nº ${escapeHtml(sale.receipt_number)}` : ""}</h1>
-      <p class="muted">Emitido em ${new Date(sale.created_at).toLocaleString("pt-BR")}</p>
+    <div style="display:flex; gap:12px; align-items:flex-start">
+      ${company?.logo_url ? `<img src="${escapeHtml(company.logo_url)}" alt="" style="height:64px;width:auto;object-fit:contain" />` : ""}
+      <div>
+        ${company?.name ? `<p style="font-size:14px;font-weight:700;margin:0">${escapeHtml(company.name)}</p>` : ""}
+        ${company?.document ? `<p class="muted">CNPJ/CPF: ${escapeHtml(company.document)}</p>` : ""}
+        ${company?.address ? `<p class="muted">${escapeHtml(company.address)}</p>` : ""}
+        ${(company?.phone || company?.email) ? `<p class="muted">${escapeHtml([company.phone, company.email].filter(Boolean).join(" · "))}</p>` : ""}
+      </div>
     </div>
     <div style="text-align:right">
+      <h1>Recibo de Venda${sale.receipt_number ? ` Nº ${escapeHtml(sale.receipt_number)}` : ""}</h1>
+      ${contractNumber ? `<p><b>Contrato:</b> ${escapeHtml(contractNumber)}</p>` : ""}
+      <p class="muted">Emitido em ${new Date(sale.created_at).toLocaleString("pt-BR")}</p>
       <p><b>Status:</b> ${escapeHtml(sale.status)}</p>
     </div>
   </div>
@@ -185,6 +198,10 @@ function VendasPage() {
     queryKey: ["vendors-light"],
     queryFn: async () => (await (supabase as any).from("vendors").select("id,name,commission_rate").eq("active", true).order("name")).data ?? [],
   });
+  const { data: companyInfo } = useQuery({
+    queryKey: ["setting", "company_info"],
+    queryFn: async () => (await supabase.from("app_settings").select("value").eq("key", "company_info").maybeSingle()).data?.value ?? {},
+  });
   const { data: sales, isLoading } = useQuery({
     queryKey: ["sales-receipts"],
     queryFn: async () => (await (supabase as any).from("sales_receipts").select("*").order("created_at", { ascending: false })).data ?? [],
@@ -297,7 +314,12 @@ function VendasPage() {
     if (!files && (sale.selfie_path || sale.signature_path)) {
       try { files = await getFiles({ data: { id: sale.id } }); setViewFiles(files); } catch {}
     }
-    printFilledReceipt(sale, files);
+    let contractNumber: string | null = null;
+    if (sale.customer_id) {
+      const { data } = await supabase.from("customers").select("contract_number").eq("id", sale.customer_id).maybeSingle();
+      contractNumber = (data as any)?.contract_number ?? null;
+    }
+    printFilledReceipt(sale, files, companyInfo || {}, contractNumber);
   }
 
   const filtered = (sales ?? []).filter((s: any) => {
