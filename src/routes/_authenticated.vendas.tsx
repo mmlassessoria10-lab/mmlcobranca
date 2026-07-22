@@ -129,6 +129,7 @@ function printSalesPromissoryNote(
   files: { selfie_url: string | null; signature_url: string | null } | null,
   company: any = {},
   contractNumber: string | null = null,
+  guarantorFiles: { selfie_url: string | null; signature_url: string | null } | null = null,
 ) {
   const snap = sale.customer_snapshot || {};
   const total = Number(sale.total_amount || 0);
@@ -141,33 +142,52 @@ function printSalesPromissoryNote(
   const credor = company?.name || "Credor";
   const credorDoc = company?.cnpj || company?.document || "";
   const credorEnd = [company?.address, company?.city, company?.state].filter(Boolean).join(", ");
+  const credorTel = company?.phone || "";
+  const credorMail = company?.email || "";
   const devedor = sale.accepted_name || snap.name || "Devedor";
   const devedorDoc = sale.accepted_document || snap.document || "—";
   const contrato = contractNumber || sale.receipt_number || sale.id?.slice?.(0, 8) || "—";
   const acceptedAt = sale.accepted_at ? new Date(sale.accepted_at).toLocaleString("pt-BR") : null;
+  const guarantor = sale.guarantor || null;
+  const gEnd = guarantor ? [guarantor.street, guarantor.number && `nº ${guarantor.number}`, guarantor.quadra && `Qd. ${guarantor.quadra}`, guarantor.neighborhood, [guarantor.city, guarantor.state].filter(Boolean).join("/"), guarantor.cep && `CEP ${guarantor.cep}`].filter(Boolean).join(", ") : "";
+  const gSignedAt = sale.guarantor_signed_at ? new Date(sale.guarantor_signed_at).toLocaleString("pt-BR") : null;
 
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>
     <title>Nota Promissória ${escapeHtml(contrato)}</title>
     <style>
       * { box-sizing: border-box; }
       body{font-family:Georgia,serif;padding:32px;color:#111;max-width:820px;margin:0 auto;line-height:1.5;}
-      .logo{display:flex;justify-content:center;margin-bottom:16px;} .logo img{max-height:86px;max-width:260px;object-fit:contain;}
+      .credor-header{border:2px solid #111;padding:16px;border-radius:6px;margin-bottom:16px;display:flex;gap:16px;align-items:flex-start;}
+      .credor-header img{max-height:80px;max-width:180px;object-fit:contain;}
+      .credor-header h2{margin:0 0 4px;font-size:16px;}
+      .credor-header p{margin:2px 0;font-size:12px;color:#333;}
       h1{text-align:center;font-size:20px;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;}
       .meta{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#555;margin-bottom:24px;border-bottom:1px solid #ddd;padding-bottom:8px;}
       .box{border:2px solid #111;padding:20px;border-radius:6px;}
       .valor{font-size:22px;font-weight:bold;text-align:right;margin-bottom:12px;}
       p{margin:8px 0;text-align:justify;}
       .parcelas{background:#f8f8f8;padding:10px;border-radius:4px;font-size:13px;margin-top:12px;}
-      .assinatura{margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:end;}
+      .assinatura{margin-top:48px;display:grid;grid-template-columns:1fr;gap:32px;align-items:end;}
+      .assinatura.dois{grid-template-columns:1fr 1fr;}
       .assinatura .linha{border-top:1px solid #111;padding-top:6px;text-align:center;font-size:12px;min-height:42px;}
       .sig-img{max-height:82px;max-width:100%;object-fit:contain;display:block;margin:0 auto 6px;background:#fff;}
       .selfie{margin-top:24px;text-align:center;}
       .selfie img{max-height:180px;border:1px solid #ccc;padding:4px;}
       .digital{margin-top:24px;padding:12px;background:#f0f9ff;border-left:4px solid #0284c7;font-size:12px;}
+      .avalista{margin-top:20px;border:1px dashed #111;padding:14px;border-radius:6px;background:#fafaf5;}
+      .avalista h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:1px;}
       .muted{color:#666;}
       @media print{ .noprint{display:none;} body{padding:14mm;} }
     </style></head><body>
-    ${company?.logo_url ? `<div class="logo"><img src="${escapeHtml(company.logo_url)}" alt="Logo"/></div>` : ""}
+    <div class="credor-header">
+      ${company?.logo_url ? `<img src="${escapeHtml(company.logo_url)}" alt="Logo"/>` : ""}
+      <div>
+        <h2>${escapeHtml(credor)}</h2>
+        ${credorDoc ? `<p><b>CNPJ/CPF:</b> ${escapeHtml(credorDoc)}</p>` : ""}
+        ${credorEnd ? `<p><b>Endereço:</b> ${escapeHtml(credorEnd)}</p>` : ""}
+        ${(credorTel || credorMail) ? `<p>${[credorTel && `<b>Tel:</b> ${escapeHtml(credorTel)}`, credorMail && `<b>E-mail:</b> ${escapeHtml(credorMail)}`].filter(Boolean).join(" · ")}</p>` : ""}
+      </div>
+    </div>
     <h1>Nota Promissória</h1>
     <div class="meta">
       <span>Nº ${escapeHtml((sale.receipt_number || sale.id?.slice?.(0, 8) || "").toString().toUpperCase())}</span>
@@ -189,6 +209,16 @@ function printSalesPromissoryNote(
 
       <p style="margin-top:16px;">Em caso de inadimplemento, incidirão multa de 2% (dois por cento), juros de mora de 1% ao mês e correção monetária, além das despesas de cobrança judicial ou extrajudicial, sem prejuízo do vencimento antecipado das demais parcelas.</p>
 
+      ${guarantor ? `
+      <div class="avalista">
+        <h3>Avalista / Fiador solidário</h3>
+        <p><b>Nome:</b> ${escapeHtml(guarantor.name || "—")}${guarantor.document ? ` &nbsp;·&nbsp; <b>Documento:</b> ${escapeHtml(guarantor.document)}` : ""}</p>
+        ${guarantor.phone ? `<p><b>Telefone:</b> ${escapeHtml(guarantor.phone)}${guarantor.email ? ` &nbsp;·&nbsp; <b>E-mail:</b> ${escapeHtml(guarantor.email)}` : ""}</p>` : (guarantor.email ? `<p><b>E-mail:</b> ${escapeHtml(guarantor.email)}</p>` : "")}
+        ${gEnd ? `<p><b>Endereço:</b> ${escapeHtml(gEnd)}</p>` : ""}
+        <p style="margin-top:8px;">O(a) avalista, na condição de fiador(a) solidário(a), garante integralmente o cumprimento desta nota promissória e responde solidariamente pelo pagamento do valor devido, seus acréscimos e despesas de cobrança.</p>
+        ${gSignedAt ? `<p class="muted"><b>✓ Aceite digital do avalista em ${escapeHtml(gSignedAt)}</b>${sale.guarantor_ip ? ` · IP ${escapeHtml(sale.guarantor_ip)}` : ""}</p>` : `<p class="muted"><i>Avalista ainda não firmou digitalmente.</i></p>`}
+      </div>` : ""}
+
       ${acceptedAt ? `
       <div class="digital">
         <b>✓ Aceite digital confirmado em ${escapeHtml(acceptedAt)}</b><br/>
@@ -198,17 +228,19 @@ function printSalesPromissoryNote(
         ${sale.accepted_user_agent ? `Dispositivo: ${escapeHtml(sale.accepted_user_agent)}` : ""}
       </div>` : `<p class="muted"><i>Nota ainda aguardando aceite digital do cliente.</i></p>`}
 
-      <div class="assinatura">
+      <div class="assinatura${guarantor ? " dois" : ""}">
         <div>
           ${files?.signature_url ? `<img class="sig-img" src="${files.signature_url}" alt="Assinatura digital"/>` : ""}
           <div class="linha">${escapeHtml(devedor)}<br/>Emitente / Devedor</div>
         </div>
-        <div>
-          <div class="linha">${escapeHtml(credor)}<br/>Credor / Beneficiário</div>
-        </div>
+        ${guarantor ? `<div>
+          ${guarantorFiles?.signature_url ? `<img class="sig-img" src="${guarantorFiles.signature_url}" alt="Assinatura do avalista"/>` : ""}
+          <div class="linha">${escapeHtml(guarantor.name || "Avalista")}<br/>Avalista / Fiador solidário</div>
+        </div>` : ""}
       </div>
 
-      ${files?.selfie_url ? `<div class="selfie"><p><b>Selfie de confirmação:</b></p><img src="${files.selfie_url}" alt="Selfie"/></div>` : ""}
+      ${files?.selfie_url ? `<div class="selfie"><p><b>Selfie do devedor:</b></p><img src="${files.selfie_url}" alt="Selfie"/></div>` : ""}
+      ${guarantorFiles?.selfie_url ? `<div class="selfie"><p><b>Selfie do avalista:</b></p><img src="${guarantorFiles.selfie_url}" alt="Selfie do avalista"/></div>` : ""}
     </div>
     <div class="noprint" style="text-align:center;margin-top:24px;">
       <button onclick="window.print()" style="padding:8px 24px;font-size:14px;cursor:pointer;">Imprimir / Salvar PDF</button>
