@@ -174,10 +174,14 @@ function PublicAgreement() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), document: doc.trim() }),
       });
-      const j = await r.json();
-      if (!r.ok) return toast.error(j.error ?? "Falha ao registrar aceite");
+      const text = await r.text();
+      let j: any = {};
+      try { j = text ? JSON.parse(text) : {}; } catch { /* non-JSON */ }
+      if (!r.ok) return toast.error(j.error ?? `Falha ao registrar aceite (HTTP ${r.status})`);
       toast.success("Acordo aceito com sucesso");
       load();
+    } catch (e: any) {
+      toast.error("Erro de conexão: " + (e?.message || e));
     } finally { setSubmitting(false); }
   }
 
@@ -192,10 +196,14 @@ function PublicAgreement() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kind: "promissory", name: pName.trim(), document: pDoc.trim(), signature: pSignature, selfie: pSelfie }),
       });
-      const j = await r.json();
-      if (!r.ok) return toast.error(j.error ?? "Falha ao registrar assinatura da nota promissória");
+      const text = await r.text();
+      let j: any = {};
+      try { j = text ? JSON.parse(text) : {}; } catch { /* non-JSON */ }
+      if (!r.ok) return toast.error(j.error ?? `Falha ao registrar assinatura (HTTP ${r.status})`);
       toast.success("Nota promissória assinada com sucesso");
       load();
+    } catch (e: any) {
+      toast.error("Erro de conexão: " + (e?.message || e));
     } finally { setPSubmitting(false); }
   }
 
