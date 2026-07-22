@@ -248,6 +248,13 @@ function PublicSale() {
     } finally { setGSubmitting(false); }
   }
 
+  const guarantorPrefill = payload?.sale?.guarantor || null;
+  useEffect(() => {
+    if (guarantorPrefill?.name && !gName) setGName(guarantorPrefill.name);
+    if (guarantorPrefill?.document && !gDoc) setGDoc(maskDocument(guarantorPrefill.document));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guarantorPrefill?.name, guarantorPrefill?.document]);
+
   if (loading) return <div className="min-h-screen grid place-items-center"><Loader2 className="w-6 h-6 animate-spin" /></div>;
   if (!payload?.sale) return <div className="min-h-screen grid place-items-center p-6 text-center"><div><h1 className="text-xl font-semibold mb-2">Recibo não encontrado</h1><p className="text-muted-foreground text-sm">O link pode ter expirado ou é inválido.</p></div></div>;
 
@@ -261,12 +268,6 @@ function PublicSale() {
   const guarantor = sale.guarantor || null;
   const guarantorSigned = !!sale.guarantor_signed_at;
   const gAddr = guarantor ? [guarantor.street, guarantor.number && `nº ${guarantor.number}`, guarantor.quadra && `Qd. ${guarantor.quadra}`, guarantor.neighborhood, [guarantor.city, guarantor.state].filter(Boolean).join("/"), guarantor.cep && `CEP ${guarantor.cep}`].filter(Boolean).join(", ") : "";
-
-  useEffect(() => {
-    if (guarantor && !gName) setGName(guarantor.name || "");
-    if (guarantor && !gDoc) setGDoc(maskDocument(guarantor.document || ""));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [guarantor?.name, guarantor?.document]);
 
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
