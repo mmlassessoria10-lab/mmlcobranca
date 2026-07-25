@@ -15,7 +15,7 @@ import { createAsaasPaymentForInstallment } from "@/lib/asaas/asaas.functions";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated/minhas-parcelas")({
-  head: () => ({ meta: [{ title: "Minhas Parcelas | Stillo Foto" }] }),
+  head: () => ({ meta: [{ title: "Minhas Parcelas | MML Assessoria e Cobrança" }] }),
   component: MinhasParcelas,
 });
 

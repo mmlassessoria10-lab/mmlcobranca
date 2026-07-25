@@ -59,7 +59,7 @@ const AVAILABLE_VARS: { key: string; label: string; example: string }[] = [
 ];
 
 export const Route = createFileRoute("/_authenticated/notificacoes")({
-  head: () => ({ meta: [{ title: "Notificações Extrajudiciais | Stillo Foto" }] }),
+  head: () => ({ meta: [{ title: "Notificações Extrajudiciais | MML Assessoria e Cobrança" }] }),
   component: NotificacoesPage,
 });
 

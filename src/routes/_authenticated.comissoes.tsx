@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { brl, fmtDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/comissoes")({
-  head: () => ({ meta: [{ title: "Comissões | Stillo Foto" }] }),
+  head: () => ({ meta: [{ title: "Comissões | MML Assessoria e Cobrança" }] }),
   component: ComissoesPage,
 });
 

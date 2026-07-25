@@ -20,7 +20,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { createAsaasPaymentForInstallment, syncContractToAsaas } from "@/lib/asaas/asaas.functions";
 
 export const Route = createFileRoute("/_authenticated/contratos/$id")({
-  head: () => ({ meta: [{ title: "Contrato | Stillo Foto" }] }),
+  head: () => ({ meta: [{ title: "Contrato | MML Assessoria e Cobrança" }] }),
   component: ContractDetail,
 });
 
