@@ -36,6 +36,7 @@ import { Route as AuthenticatedContratosIdRouteImport } from './routes/_authenti
 import { Route as ApiPublicSalesTokenRouteImport } from './routes/api/public/sales.$token'
 import { Route as ApiPublicNotificationsTokenRouteImport } from './routes/api/public/notifications.$token'
 import { Route as ApiPublicHooksRemindersRouteImport } from './routes/api/public/hooks/reminders'
+import { Route as ApiPublicHooksAsaasSyncRouteImport } from './routes/api/public/hooks/asaas-sync'
 import { Route as ApiPublicAgreementsTokenRouteImport } from './routes/api/public/agreements.$token'
 
 const TrustRoute = TrustRouteImport.update({
@@ -180,6 +181,11 @@ const ApiPublicHooksRemindersRoute = ApiPublicHooksRemindersRouteImport.update({
   path: '/api/public/hooks/reminders',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksAsaasSyncRoute = ApiPublicHooksAsaasSyncRouteImport.update({
+  id: '/api/public/hooks/asaas-sync',
+  path: '/api/public/hooks/asaas-sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAgreementsTokenRoute =
   ApiPublicAgreementsTokenRouteImport.update({
     id: '/api/public/agreements/$token',
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
   '/contratos/': typeof AuthenticatedContratosIndexRoute
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
+  '/api/public/hooks/asaas-sync': typeof ApiPublicHooksAsaasSyncRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
   '/api/public/sales/$token': typeof ApiPublicSalesTokenRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByTo {
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
   '/contratos': typeof AuthenticatedContratosIndexRoute
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
+  '/api/public/hooks/asaas-sync': typeof ApiPublicHooksAsaasSyncRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
   '/api/public/sales/$token': typeof ApiPublicSalesTokenRoute
@@ -271,6 +279,7 @@ export interface FileRoutesById {
   '/api/public/asaas-webhook': typeof ApiPublicAsaasWebhookRoute
   '/_authenticated/contratos/': typeof AuthenticatedContratosIndexRoute
   '/api/public/agreements/$token': typeof ApiPublicAgreementsTokenRoute
+  '/api/public/hooks/asaas-sync': typeof ApiPublicHooksAsaasSyncRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
   '/api/public/notifications/$token': typeof ApiPublicNotificationsTokenRoute
   '/api/public/sales/$token': typeof ApiPublicSalesTokenRoute
@@ -302,6 +311,7 @@ export interface FileRouteTypes {
     | '/api/public/asaas-webhook'
     | '/contratos/'
     | '/api/public/agreements/$token'
+    | '/api/public/hooks/asaas-sync'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
     | '/api/public/sales/$token'
@@ -330,6 +340,7 @@ export interface FileRouteTypes {
     | '/api/public/asaas-webhook'
     | '/contratos'
     | '/api/public/agreements/$token'
+    | '/api/public/hooks/asaas-sync'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
     | '/api/public/sales/$token'
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/api/public/asaas-webhook'
     | '/_authenticated/contratos/'
     | '/api/public/agreements/$token'
+    | '/api/public/hooks/asaas-sync'
     | '/api/public/hooks/reminders'
     | '/api/public/notifications/$token'
     | '/api/public/sales/$token'
@@ -374,6 +386,7 @@ export interface RootRouteChildren {
   VTokenRoute: typeof VTokenRoute
   ApiPublicAsaasWebhookRoute: typeof ApiPublicAsaasWebhookRoute
   ApiPublicAgreementsTokenRoute: typeof ApiPublicAgreementsTokenRoute
+  ApiPublicHooksAsaasSyncRoute: typeof ApiPublicHooksAsaasSyncRoute
   ApiPublicHooksRemindersRoute: typeof ApiPublicHooksRemindersRoute
   ApiPublicNotificationsTokenRoute: typeof ApiPublicNotificationsTokenRoute
   ApiPublicSalesTokenRoute: typeof ApiPublicSalesTokenRoute
@@ -570,6 +583,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/asaas-sync': {
+      id: '/api/public/hooks/asaas-sync'
+      path: '/api/public/hooks/asaas-sync'
+      fullPath: '/api/public/hooks/asaas-sync'
+      preLoaderRoute: typeof ApiPublicHooksAsaasSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/agreements/$token': {
       id: '/api/public/agreements/$token'
       path: '/api/public/agreements/$token'
@@ -645,6 +665,7 @@ const rootRouteChildren: RootRouteChildren = {
   VTokenRoute: VTokenRoute,
   ApiPublicAsaasWebhookRoute: ApiPublicAsaasWebhookRoute,
   ApiPublicAgreementsTokenRoute: ApiPublicAgreementsTokenRoute,
+  ApiPublicHooksAsaasSyncRoute: ApiPublicHooksAsaasSyncRoute,
   ApiPublicHooksRemindersRoute: ApiPublicHooksRemindersRoute,
   ApiPublicNotificationsTokenRoute: ApiPublicNotificationsTokenRoute,
   ApiPublicSalesTokenRoute: ApiPublicSalesTokenRoute,
