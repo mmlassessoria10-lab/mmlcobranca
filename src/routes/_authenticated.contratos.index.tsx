@@ -20,7 +20,7 @@ import { brl, fmtDate } from "@/lib/format";
 import { generateInstallments } from "@/lib/installments";
 
 export const Route = createFileRoute("/_authenticated/contratos/")({
-  head: () => ({ meta: [{ title: "Contratos | Stillo Foto" }] }),
+  head: () => ({ meta: [{ title: "Contratos | MML Assessoria e Cobrança" }] }),
   component: ContratosPage,
 });
 

@@ -3,17 +3,17 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/trust")({
   head: () => ({
     meta: [
-      { title: "Confiança e Privacidade | Stillo Foto" },
+      { title: "Confiança e Privacidade | MML Assessoria e Cobrança" },
       {
         name: "description",
         content:
-          "Como o Stillo Foto protege seus dados: autenticação, controle de acesso por papel, criptografia em trânsito e práticas de privacidade.",
+          "Como o MML Assessoria e Cobrança protege seus dados: autenticação, controle de acesso por papel, criptografia em trânsito e práticas de privacidade.",
       },
-      { property: "og:title", content: "Confiança e Privacidade | Stillo Foto" },
+      { property: "og:title", content: "Confiança e Privacidade | MML Assessoria e Cobrança" },
       {
         property: "og:description",
         content:
-          "Visão geral das práticas de segurança, privacidade e tratamento de dados do Stillo Foto.",
+          "Visão geral das práticas de segurança, privacidade e tratamento de dados do MML Assessoria e Cobrança.",
       },
     ],
   }),
@@ -35,7 +35,7 @@ function TrustPage() {
       <header className="border-b">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
           <Link to="/" className="text-sm font-semibold text-foreground">
-            Stillo Foto
+            MML Assessoria e Cobrança
           </Link>
           <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground">
             Entrar
@@ -49,7 +49,7 @@ function TrustPage() {
             Confiança, Segurança e Privacidade
           </h1>
           <p className="text-sm text-muted-foreground">
-            Esta página é mantida pelo responsável do Stillo Foto para responder dúvidas comuns
+            Esta página é mantida pelo responsável do MML Assessoria e Cobrança para responder dúvidas comuns
             sobre segurança e privacidade. Ela descreve controles habilitados no aplicativo e não
             representa uma certificação independente.
           </p>
@@ -57,7 +57,7 @@ function TrustPage() {
 
         <Section title="Acesso e autenticação">
           <p>
-            O acesso ao Stillo Foto requer autenticação. Cada usuário recebe um papel
+            O acesso ao MML Assessoria e Cobrança requer autenticação. Cada usuário recebe um papel
             (Administrador, Financeiro ou Cobrança) que define quais áreas e dados podem ser
             visualizados ou modificados.
           </p>
@@ -78,7 +78,7 @@ function TrustPage() {
 
         <Section title="Coleta e uso de dados">
           <p>
-            O Stillo Foto coleta apenas as informações necessárias para gestão de cobranças:
+            O MML Assessoria e Cobrança coleta apenas as informações necessárias para gestão de cobranças:
             dados cadastrais dos clientes, contratos, parcelas e lembretes enviados.
           </p>
           <p>
@@ -106,14 +106,14 @@ function TrustPage() {
         <Section title="Contato">
           <p>
             Para dúvidas de privacidade, solicitações de titulares ou relato de
-            vulnerabilidades, entre em contato com o responsável do Stillo Foto pelos canais
+            vulnerabilidades, entre em contato com o responsável do MML Assessoria e Cobrança pelos canais
             informados internamente à sua organização.
           </p>
         </Section>
 
         <p className="text-xs text-muted-foreground pt-4 border-t">
           Este conteúdo é editável pelo responsável do aplicativo e descreve práticas atuais do
-          Stillo Foto. Não constitui certificação, parecer jurídico ou garantia de conformidade
+          MML Assessoria e Cobrança. Não constitui certificação, parecer jurídico ou garantia de conformidade
           regulatória.
         </p>
       </main>

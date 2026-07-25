@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 const ROLES: AppRole[] = ["admin", "financeiro", "cobranca"];
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Administração | Stillo Foto" }] }),
+  head: () => ({ meta: [{ title: "Administração | MML Assessoria e Cobrança" }] }),
   component: AdminPage,
 });
 
@@ -124,7 +124,7 @@ function AdminPage() {
     return `${window.location.origin}/auth?invite=${token}`;
   }
   function inviteMessage(token: string, role: AppRole) {
-    return `Olá! Você foi convidado para acessar o Stillo Foto como ${ROLE_LABELS[role]}. Acesse o link para criar sua conta: ${inviteUrl(token)}`;
+    return `Olá! Você foi convidado para acessar o MML Assessoria e Cobrança como ${ROLE_LABELS[role]}. Acesse o link para criar sua conta: ${inviteUrl(token)}`;
   }
 
   async function createInvite() {
