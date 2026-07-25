@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { brl, fmtDate } from "@/lib/format";
-import { AlertTriangle, CheckCircle2, Clock, DollarSign, FileText, Scale, Wallet, TrendingDown, TrendingUp, Receipt } from "lucide-react";
+import { AlertTriangle, CalendarCheck, CheckCircle2, Clock, DollarSign, FileText, Scale, Wallet, TrendingDown, TrendingUp, Receipt } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import photogenicLogo from "@/assets/mml-logo.jpeg.asset.json";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({ meta: [{ title: "Dashboard | MML Assessoria e Cobrança" }] }),
@@ -26,17 +25,22 @@ function Dashboard() {
         supabase.from("customers").select("id"),
       ]);
       const today = new Date(); today.setHours(0,0,0,0);
-      let total = 0, pago = 0, aberto = 0, atrasado = 0, qtdAtraso = 0;
+      const todayStr = today.toISOString().slice(0,10);
+      let total = 0, pago = 0, aberto = 0, atrasado = 0, qtdAtraso = 0, recebidoHoje = 0, qtdHoje = 0;
       (installments ?? []).forEach((i: any) => {
         const amt = Number(i.amount);
         total += amt;
-        if (i.paid_at) { pago += amt; return; }
+        if (i.paid_at) {
+          pago += amt;
+          if (String(i.paid_at).slice(0,10) === todayStr) { recebidoHoje += amt; qtdHoje += 1; }
+          return;
+        }
         aberto += amt;
         const d = new Date(i.due_date + "T00:00:00");
         if (d < today) { atrasado += amt; qtdAtraso += 1; }
       });
       return {
-        total, pago, aberto, atrasado, qtdAtraso,
+        total, pago, aberto, atrasado, qtdAtraso, recebidoHoje, qtdHoje,
         contratos: contracts?.length ?? 0,
         clientes: customers?.length ?? 0,
       };
@@ -137,17 +141,23 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-center gap-4">
-        <img
-          src={photogenicLogo.url}
-          alt="MML Assessoria & Cobrança"
-          className="w-48 h-48 object-contain shrink-0"
-        />
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Visão geral do parcelamento</p>
-        </div>
+      <header>
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground mt-1">Visão geral do parcelamento</p>
       </header>
+
+      <Card className="border-emerald-500/40 bg-emerald-500/5">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Recebido hoje</p>
+              <p className="text-3xl font-bold mt-1 text-emerald-600">{isLoading ? "—" : brl(data?.recebidoHoje ?? 0)}</p>
+              <p className="text-xs text-muted-foreground mt-1">{data?.qtdHoje ?? 0} parcela(s) baixada(s) hoje</p>
+            </div>
+            <CalendarCheck className="w-8 h-8 text-emerald-600" />
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {kpis.map((k) => (
