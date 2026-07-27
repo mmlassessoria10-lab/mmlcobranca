@@ -235,6 +235,20 @@ function NotificacoesPage() {
     setPreviewBody(renderTemplate(selectedTemplate.body ?? "", vars));
   }
 
+  // Preenche a prévia automaticamente sempre que cliente/contrato/modelo mudarem,
+  // evitando o registro de notificações em branco por esquecimento de "Gerar prévia".
+  useEffect(() => {
+    if (!selectedTemplate || !selectedContract) {
+      setPreviewSubject("");
+      setPreviewBody("");
+      return;
+    }
+    const vars = buildVars();
+    setPreviewSubject(renderTemplate(selectedTemplate.subject ?? "", vars));
+    setPreviewBody(renderTemplate(selectedTemplate.body ?? "", vars));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selTemplate, selContract, selCustomer, selectedContract, selectedTemplate]);
+
   async function saveTemplate() {
     if (!tplForm.name.trim() || !tplForm.body.trim()) return toast.error("Nome e corpo são obrigatórios");
     const payload: any = { name: tplForm.name.trim(), subject: tplForm.subject, body: tplForm.body };
