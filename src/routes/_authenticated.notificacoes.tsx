@@ -274,7 +274,9 @@ function NotificacoesPage() {
   }
 
   async function registerSent() {
-    if (!selectedCustomer || !previewBody) return toast.error("Gere a prévia primeiro");
+    if (!selectedCustomer) return toast.error("Selecione o cliente");
+    if (!selectedTemplate) return toast.error("Selecione um modelo de notificação");
+    if (!previewBody.trim()) return toast.error("O corpo da notificação está vazio — gere a prévia antes de registrar");
     const { data, error } = await (supabase as any).from("notifications_sent").insert({
       customer_id: selectedCustomer.id,
       contract_id: selectedContract?.id ?? null,
