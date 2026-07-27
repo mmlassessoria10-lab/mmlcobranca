@@ -4,9 +4,11 @@ export const Route = createFileRoute("/api/public/hooks/reminders")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apikey = request.headers.get("apikey") ?? request.headers.get("Apikey");
-        const expected = process.env.SUPABASE_PUBLISHABLE_KEY;
-        if (!apikey || !expected || apikey !== expected) {
+        // Segredo dedicado (nunca a chave publicável, que é pública no frontend).
+        const provided =
+          request.headers.get("x-hook-secret") ?? request.headers.get("X-Hook-Secret");
+        const expected = process.env.CRON_HOOK_SECRET;
+        if (!expected || !provided || provided !== expected) {
           return new Response(JSON.stringify({ error: "unauthorized" }), {
             status: 401,
             headers: { "Content-Type": "application/json" },

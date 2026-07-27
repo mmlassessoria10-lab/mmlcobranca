@@ -4,9 +4,11 @@ export const Route = createFileRoute("/api/public/asaas-webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Falha fechada: sem token configurado, o webhook é recusado.
         const expected = process.env.ASAAS_WEBHOOK_TOKEN;
-        const token = request.headers.get("asaas-access-token") || request.headers.get("Asaas-Access-Token");
-        if (expected && token !== expected) {
+        const token =
+          request.headers.get("asaas-access-token") || request.headers.get("Asaas-Access-Token");
+        if (!expected || !token || token !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
         let payload: any;
